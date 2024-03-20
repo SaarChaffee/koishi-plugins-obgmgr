@@ -37,24 +37,23 @@ export function apply(ctx: Context) {
 
         ctx.logger.debug('guild id: ' + meta.guildId)
         ctx.logger.debug('user id: ' + meta.userId)
-        ctx.logger.debug('bot info: ' +
-          inspect(await meta.onebot.getGroupMemberInfo(meta.guildId, meta.selfId), { depth: null, colors: true }))
-        ctx.logger.debug('user info: ' +
-          inspect(await meta.onebot.getGroupMemberInfo(meta.guildId, meta.userId), { depth: null, colors: true }))
 
         const bot = await meta.onebot.getGroupMemberInfo(meta.guildId, meta.selfId)
         if (bot.role !== 'admin' && bot.role !== 'owner') {
           return next()
         }
+        ctx.logger.debug('bot info: ' + inspect(bot, { depth: null, colors: true }))
+
+        const user = await meta.onebot.getGroupMemberInfo(meta.guildId, meta.userId)
+        ctx.logger.info('user info: ' + inspect(user, { depth: null, colors: true }))
 
         const elements = meta.elements
         const msgs = []
-
         for (const e of elements) {
           switch (e.type) {
             case 'at': {
-              const info = await meta.onebot.getGroupMemberInfo(meta.guildId, e.attrs.id)
-              msgs.push(`@${info.card.length > 0 ? info.card : info.nickname}`)
+              const target = await meta.onebot.getGroupMemberInfo(meta.guildId, e.attrs.id)
+              msgs.push(`@${target.card.length > 0 ? target.card : target.nickname}`)
               break
             }
             case 'img': {
@@ -78,10 +77,12 @@ export function apply(ctx: Context) {
           groups[meta.guildId].msgs.push({
             msgId: meta.messageId,
             message: msg,
+            userRole: user.role,
           })
         } else {
           const diff = diffChars(msg, groups[meta.guildId].msgs[0].message)
-          ctx.logger.debug('diff: ' + inspect(diff, { depth: null, colors: true }))
+          ctx.logger.info('diff: ' + inspect(diff, { depth: null, colors: true }))
+
           const count = diff.reduce((acc, cur) => {
             if (!cur.added && !cur.removed) {
               acc += cur.count
@@ -89,16 +90,25 @@ export function apply(ctx: Context) {
             return acc
           }, 0)
           ctx.logger.debug('diff count: ' + count)
-          ctx.logger.debug('diff ratio: ' + count * 2 / (msg.length + groups[meta.guildId].msgs[0].message.length))
-          if (!count ||
-            count * 2 / (msg.length + groups[meta.guildId].msgs[0].message.length) >= ctx.config.similarity) {
+
+          const ratio = count * 2 / (msg.length + groups[meta.guildId].msgs[0].message.length)
+          ctx.logger.info('diff ratio: ' + ratio)
+
+          if (ratio !== 0 && ratio >= ctx.config.similarity) {
             groups[meta.guildId].msgs.push({
               msgId: meta.messageId,
               message: msg,
+              userRole: user.role,
             })
             if (groups[meta.guildId].msgs.length > 3 || groups[meta.guildId].repeat) {
               groups[meta.guildId].repeat = true
               for (let i = groups[meta.guildId].msgs.length - 1; i > 0; i--) {
+                if (bot.role === 'admin' && (
+                  groups[meta.guildId].msgs[i].userRole === 'admin' ||
+                  groups[meta.guildId].msgs[i].userRole === 'owner'
+                )) {
+                  continue
+                }
                 await meta.bot.deleteMessage(meta.guildId, groups[meta.guildId].msgs[i].msgId)
               }
             }
@@ -106,6 +116,7 @@ export function apply(ctx: Context) {
             groups[meta.guildId].msgs = [{
               msgId: meta.messageId,
               message: msg,
+              userRole: user.role,
             }]
             groups[meta.guildId].repeat = false
           }
@@ -128,4 +139,5 @@ interface Group {
 interface Msg {
   msgId: string
   message: string
+  userRole: string
 }
