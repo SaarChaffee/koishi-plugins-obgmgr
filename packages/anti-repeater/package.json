@@ -1,22 +1,19 @@
 {
   "name": "koishi-plugin-anti-repeater",
   "description": "用于 onebot 的反复读机插件",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
     "lib",
     "dist"
   ],
-  "author": {
-    "name": "SaarChaffee",
-    "email": "saarchaffee@qq.com",
-    "url": "https://github.com/SaarChaffee"
-  },
+  "author": "SaarChaffee <saarchaffee@qq.com>",
   "homepage": "https://github.com/SaarChaffee/koishi-plugins-obgmgr",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/SaarChaffee/koishi-plugins-obgmgr.git"
+    "url": "git+https://github.com/SaarChaffee/koishi-plugins-obgmgr.git",
+    "directory": "packages/anti-repeater"
   },
   "bugs": {
     "url": "https://github.com/SaarChaffee/koishi-plugins-obgmgr/issues"
