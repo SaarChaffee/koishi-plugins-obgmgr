@@ -45,7 +45,7 @@ export function apply(ctx: Context) {
         ctx.logger.debug('bot info: ' + inspect(bot, { depth: null, colors: true }))
 
         const user = await meta.onebot.getGroupMemberInfo(meta.guildId, meta.userId)
-        ctx.logger.info('user info: ' + inspect(user, { depth: null, colors: true }))
+        ctx.logger.debug('user info: ' + inspect(user, { depth: null, colors: true }))
 
         const elements = meta.elements
         const msgs = []
@@ -81,7 +81,7 @@ export function apply(ctx: Context) {
           })
         } else {
           const diff = diffChars(msg, groups[meta.guildId].msgs[0].message)
-          ctx.logger.info('diff: ' + inspect(diff, { depth: null, colors: true }))
+          ctx.logger.debug('diff: ' + inspect(diff, { depth: null, colors: true }))
 
           const count = diff.reduce((acc, cur) => {
             if (!cur.added && !cur.removed) {
@@ -92,7 +92,7 @@ export function apply(ctx: Context) {
           ctx.logger.debug('diff count: ' + count)
 
           const ratio = count * 2 / (msg.length + groups[meta.guildId].msgs[0].message.length)
-          ctx.logger.info('diff ratio: ' + ratio)
+          ctx.logger.debug('diff ratio: ' + ratio)
 
           if (ratio !== 0 && ratio >= ctx.config.similarity) {
             groups[meta.guildId].msgs.push({
