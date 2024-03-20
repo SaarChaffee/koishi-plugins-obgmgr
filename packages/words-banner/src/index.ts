@@ -10,9 +10,9 @@ export const Config: Schema<Config> = Schema.object({
     enable: Schema.boolean().description('是否启用').default(true),
     blockingWords: Schema.dict(Schema.object({
       enable: Schema.boolean().description('是否启用').default(true),
-      mute: Schema.boolean().description('检测到违禁词后是否禁言').default(false),
-      muteDuration: Schema.natural().role('ms').description('禁言时长 (单位为毫秒)').default(10 * Time.minute),
-      recall: Schema.boolean().description('检测到违禁词后是否撤回').default(false),
+      mute: Schema.boolean().description('是否禁言').default(false),
+      muteDuration: Schema.natural().role('s').description('禁言时长 (秒)').default(10 * Time.minute / 1000),
+      recall: Schema.boolean().description('是否撤回').default(false),
     }).description('违禁词')).description('违禁词列表 (可使用正则表达式)').role('table'),
   }).description('群号')).description('规则列表'),
 }).description('违禁词检测设置')
@@ -75,7 +75,7 @@ export function apply(ctx: Context) {
                 user.role === 'owner'
               ))) {
               if (words[word].mute) {
-                await meta.onebot.setGroupBan(meta.guildId, meta.userId, words[word].muteDuration / 1000)
+                await meta.onebot.setGroupBan(meta.guildId, meta.userId, words[word].muteDuration)
               }
               if (words[word].recall) {
                 await meta.onebot.deleteMsg(meta.messageId)
