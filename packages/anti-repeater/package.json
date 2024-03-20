@@ -44,6 +44,9 @@
   "peerDependencies": {
     "koishi": "^4.17.2"
   },
+  "devDependencies": {
+    "koishi-plugin-adapter-onebot": "^6.5.0"
+  },
   "dependencies": {
     "@types/diff": "^5.0.9",
     "diff": "^5.2.0"
