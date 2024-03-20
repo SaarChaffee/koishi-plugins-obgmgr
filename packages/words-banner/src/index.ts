@@ -3,7 +3,7 @@ import { inspect } from 'util'
 import { Context, Dict, Schema, Time } from 'koishi'
 import type { } from 'koishi-plugin-adapter-onebot'
 
-export const name = 'anti-repeater'
+export const name = 'words-banner'
 
 export const Config: Schema<Config> = Schema.object({
   blockingRules: Schema.dict(Schema.object({

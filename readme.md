@@ -5,7 +5,7 @@
 |                                                   名称                                                   |                                                                      按本                                                                       |  描述  |
 | :------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------: | :----: |
 | [anti-repeater](https://github.com/SaarChaffee/koishi-plugins-obgmgr/tree/master/packages/anti-repeater) | [![NPM](https://img.shields.io/npm/v/koishi-plugin-anti-repeater?style=flat-square)](https://www.npmjs.com/package/koishi-plugin-anti-repeater) | 反复读 |
-|   [word-banner](https://github.com/SaarChaffee/koishi-plugins-obgmgr/tree/master/packages/word-banner)   |   [![NPM](https://img.shields.io/npm/v/koishi-plugin-word-banner?style=flat-square)](https://www.npmjs.com/package/koishi-plugin-word-banner)   | 违禁词 |
+|   [words-banner](https://github.com/SaarChaffee/koishi-plugins-obgmgr/tree/master/packages/words-banner)   |   [![NPM](https://img.shields.io/npm/v/koishi-plugin-words-banner?style=flat-square)](https://www.npmjs.com/package/koishi-plugin-words-banner)   | 违禁词 |
 
 ## 安装方式
 
