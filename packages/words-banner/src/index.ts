@@ -57,6 +57,12 @@ export function apply(ctx: Context) {
               msgs.push(e.attrs.id)
               break
             }
+            case 'json': {
+              const data = JSON.parse(e.attrs.data)
+              ctx.logger.debug(JSON.stringify(data))
+              msgs.push(JSON.stringify(data))
+              break
+            }
             case 'text':
             default: {
               msgs.push(e.attrs.content)
@@ -65,11 +71,14 @@ export function apply(ctx: Context) {
           }
         }
 
+        const msg = msgs.join('')
+        ctx.logger.debug(msg)
+
         const words = ctx.config.blockingRules[meta.guildId].blockingWords
         Object.keys(words).forEach(async (word) => {
           if (words[word].enable) {
             const re = new RegExp(word, 'is')
-            if (re.test(meta.content) &&
+            if (re.test(msg) &&
               !(bot.role === 'admin' && (
                 user.role === 'admin' ||
                 user.role === 'owner'
