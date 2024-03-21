@@ -100,7 +100,7 @@ export function apply(ctx: Context) {
               message: msg,
               userRole: user.role,
             })
-            if (groups[meta.guildId].msgs.length > ctx.config.count || groups[meta.guildId].repeat) {
+            if (groups[meta.guildId].msgs.length >= ctx.config.count || groups[meta.guildId].repeat) {
               groups[meta.guildId].repeat = true
               for (let i = groups[meta.guildId].msgs.length - 1; i > 0; i--) {
                 if (bot.role === 'admin' && (
