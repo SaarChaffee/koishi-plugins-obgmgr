@@ -104,8 +104,8 @@ export function apply(ctx: Context) {
               groups[meta.guildId].repeat = true
               for (let i = groups[meta.guildId].msgs.length - 1; i > 0; i--) {
                 if (bot.role === 'admin' && (
-                  groups[meta.guildId].msgs[i].userRole === 'admin' ||
-                  groups[meta.guildId].msgs[i].userRole === 'owner'
+                  groups[meta.guildId].msgs[i]?.userRole === 'admin' ||
+                  groups[meta.guildId].msgs[i]?.userRole === 'owner'
                 )) {
                   continue
                 }
