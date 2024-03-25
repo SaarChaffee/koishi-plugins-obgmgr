@@ -1,10 +1,12 @@
 import { inspect } from 'util'
 
+import { handleMsg } from '@saarchaffee/msg-handler'
 import { diffChars } from 'diff'
-import { Context, Schema } from 'koishi'
+import { Context, Logger, Schema } from 'koishi'
 import type { } from 'koishi-plugin-adapter-onebot'
 
 export const name = 'anti-repeater'
+const logger = new Logger(name)
 
 export interface Config {
   blackListMode: boolean
@@ -20,93 +22,57 @@ export const Config: Schema<Config> = Schema.object({
   count: Schema.number().default(3).description('触发反复读的复读次数。'),
 })
 
-export function apply(ctx: Context) {
-  if (ctx.config.groupList.length) {
+function getRatio(a: string, b: string): number {
+  const diff = diffChars(a, b)
+  logger.debug('diff: ' + inspect(diff, { depth: null, colors: true }))
+
+  const count = diff.reduce((acc, cur) => {
+    if (!cur.added && !cur.removed) {
+      acc += cur.count
+    }
+    return acc
+  }, 0)
+  logger.debug('diff count: ' + count)
+
+  const ratio = count * 2 / (a.length + b.length)
+  logger.debug('diff ratio: ' + ratio)
+
+  return ratio
+}
+
+export function apply(ctx: Context, config: Config) {
+  if (config.groupList.length) {
     const groups: Groups = {}
-    ctx.config.groupList.forEach(group => {
-      groups[group] = { msgs: [], repeat: false }
+    config.groupList.forEach(group => {
+      groups[group] = { msgs: [], repeat: false, temp: null }
     })
     ctx.middleware(async (meta, next) => {
       if (meta.onebot && (
-        !ctx.config.blackListMode && ctx.config.groupList.includes(meta.guildId) ||
-        ctx.config.blackListMode && !ctx.config.groupList.includes(meta.guildId)
+        !config.blackListMode && config.groupList.includes(meta.guildId) ||
+        config.blackListMode && !config.groupList.includes(meta.guildId)
       )) {
-        ctx.logger.debug('content: ' + meta.content)
-        ctx.logger.debug('elements: ' + meta.elements)
-        // await writeFile('meta.json', JSON.stringify(meta))
-
-        ctx.logger.debug('guild id: ' + meta.guildId)
-        ctx.logger.debug('user id: ' + meta.userId)
-
         const bot = await meta.onebot.getGroupMemberInfo(meta.guildId, meta.selfId)
         if (bot.role !== 'admin' && bot.role !== 'owner') {
           return next()
         }
-        ctx.logger.debug('bot info: ' + inspect(bot, { depth: null, colors: true }))
+        logger.debug('bot info: ' + inspect(bot, { depth: null, colors: true }))
 
         const user = await meta.onebot.getGroupMemberInfo(meta.guildId, meta.userId)
-        ctx.logger.debug('user info: ' + inspect(user, { depth: null, colors: true }))
+        logger.debug('user info: ' + inspect(user, { depth: null, colors: true }))
 
-        const elements = meta.elements
-        const msgs = []
-        for (const e of elements) {
-          switch (e.type) {
-            case 'at': {
-              const target = await meta.onebot.getGroupMemberInfo(meta.guildId, e.attrs.id)
-              msgs.push(`@${target.card.length > 0 ? target.card : target.nickname}`)
-              break
-            }
-            case 'img': {
-              msgs.push(e.attrs.file)
-              break
-            }
-            case 'face': {
-              msgs.push(e.attrs.id)
-              break
-            }
-            case 'json': {
-              const data = JSON.parse(e.attrs.data)
-              ctx.logger.debug(JSON.stringify(data))
-              msgs.push(JSON.stringify(data))
-              break
-            }
-            case 'text':
-            default: {
-              msgs.push(e.attrs.content)
-              break
-            }
-          }
+        const msg = {
+          msgId: meta.messageId,
+          message: await handleMsg(ctx, meta),
+          userRole: user.role,
         }
-
-        const msg = msgs.join('')
         if (!groups[meta.guildId].msgs.length) {
-          groups[meta.guildId].msgs.push({
-            msgId: meta.messageId,
-            message: msg,
-            userRole: user.role,
-          })
+          groups[meta.guildId].msgs.push(msg)
         } else {
-          const diff = diffChars(msg, groups[meta.guildId].msgs[0].message)
-          ctx.logger.debug('diff: ' + inspect(diff, { depth: null, colors: true }))
+          const ratio = getRatio(msg.message, groups[meta.guildId].msgs[0].message)
 
-          const count = diff.reduce((acc, cur) => {
-            if (!cur.added && !cur.removed) {
-              acc += cur.count
-            }
-            return acc
-          }, 0)
-          ctx.logger.debug('diff count: ' + count)
-
-          const ratio = count * 2 / (msg.length + groups[meta.guildId].msgs[0].message.length)
-          ctx.logger.debug('diff ratio: ' + ratio)
-
-          if (ratio !== 0 && ratio >= ctx.config.similarity) {
-            groups[meta.guildId].msgs.push({
-              msgId: meta.messageId,
-              message: msg,
-              userRole: user.role,
-            })
-            if (groups[meta.guildId].msgs.length >= ctx.config.count || groups[meta.guildId].repeat) {
+          if (ratio !== 0 && ratio >= config.similarity) {
+            groups[meta.guildId].msgs.push(msg)
+            if (groups[meta.guildId].msgs.length >= config.count || groups[meta.guildId].repeat) {
               groups[meta.guildId].repeat = true
               for (let i = groups[meta.guildId].msgs.length - 1; i > 0; i--) {
                 if (bot.role === 'admin' && (
@@ -119,12 +85,27 @@ export function apply(ctx: Context) {
               }
             }
           } else {
-            groups[meta.guildId].msgs = [{
-              msgId: meta.messageId,
-              message: msg,
-              userRole: user.role,
-            }]
-            groups[meta.guildId].repeat = false
+            if (groups[meta.guildId].msgs.length > 1 || groups[meta.guildId].repeat) {
+              if (!groups[meta.guildId].temp) {
+                groups[meta.guildId].temp = msg
+              } else {
+                const ratio = getRatio(msg.message, groups[meta.guildId].temp.message)
+                if (ratio !== 0 && ratio >= config.similarity) {
+                  if (config.count === 2) {
+                    await meta.bot.deleteMessage(meta.guildId, groups[meta.guildId].temp.msgId)
+                    await meta.bot.deleteMessage(meta.guildId, msg.msgId)
+                  } else {
+                    groups[meta.guildId].msgs = [groups[meta.guildId].temp, msg]
+                  }
+                } else {
+                  groups[meta.guildId].msgs = [msg]
+                }
+                groups[meta.guildId].repeat = false
+                groups[meta.guildId].temp = null
+              }
+            } else {
+              groups[meta.guildId].msgs = [msg]
+            }
           }
         }
       }
@@ -140,6 +121,7 @@ interface Groups {
 interface Group {
   msgs: Msg[]
   repeat: boolean
+  temp: Msg
 }
 
 interface Msg {

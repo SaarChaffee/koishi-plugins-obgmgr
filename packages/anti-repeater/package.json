@@ -45,6 +45,7 @@
     "koishi-plugin-adapter-onebot": "^6.5.0"
   },
   "dependencies": {
+    "@saarchaffee/msg-handler": "^0.0.1",
     "@types/diff": "^5.0.9",
     "diff": "^5.2.0"
   }
