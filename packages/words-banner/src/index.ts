@@ -1,5 +1,6 @@
 import { inspect } from 'util'
 
+import { handleMsg } from '@saarchaffee/msg-handler'
 import { Context, Dict, Schema, Time } from 'koishi'
 import type { } from 'koishi-plugin-adapter-onebot'
 
@@ -24,13 +25,6 @@ export function apply(ctx: Context) {
         ctx.config.blockingRules[meta.guildId] &&
         ctx.config.blockingRules[meta.guildId].enable
       ) {
-        ctx.logger.debug('content: ' + meta.content)
-        ctx.logger.debug('elements: ' + meta.elements)
-        // await writeFile('meta.json', JSON.stringify(meta))
-
-        ctx.logger.debug('guild id: ' + meta.guildId)
-        ctx.logger.debug('user id: ' + meta.userId)
-
         const bot = await meta.onebot.getGroupMemberInfo(meta.guildId, meta.selfId)
         if (bot.role !== 'admin' && bot.role !== 'owner') {
           return next()
@@ -40,40 +34,7 @@ export function apply(ctx: Context) {
         const user = await meta.onebot.getGroupMemberInfo(meta.guildId, meta.userId)
         ctx.logger.debug('user info: ' + inspect(user, { depth: null, colors: true }))
 
-        const elements = meta.elements
-        const msgs = []
-        for (const e of elements) {
-          switch (e.type) {
-            case 'at': {
-              const target = await meta.onebot.getGroupMemberInfo(meta.guildId, e.attrs.id)
-              msgs.push(`@${target.card.length > 0 ? target.card : target.nickname}`)
-              break
-            }
-            case 'img': {
-              msgs.push(e.attrs.file)
-              break
-            }
-            case 'face': {
-              msgs.push(e.attrs.id)
-              break
-            }
-            case 'json': {
-              const data = JSON.parse(e.attrs.data)
-              ctx.logger.debug(JSON.stringify(data))
-              msgs.push(JSON.stringify(data))
-              break
-            }
-            case 'text':
-            default: {
-              msgs.push(e.attrs.content)
-              break
-            }
-          }
-        }
-
-        const msg = msgs.join('')
-        ctx.logger.debug(msg)
-
+        const msg = await handleMsg(ctx, meta)
         const words = ctx.config.blockingRules[meta.guildId].blockingWords
         Object.keys(words).forEach(async (word) => {
           if (words[word].enable) {
