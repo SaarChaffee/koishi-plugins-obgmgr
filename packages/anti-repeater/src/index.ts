@@ -64,6 +64,12 @@ export function apply(ctx: Context) {
               msgs.push(e.attrs.id)
               break
             }
+            case 'json': {
+              const data = JSON.parse(e.attrs.data)
+              ctx.logger.debug(JSON.stringify(data))
+              msgs.push(JSON.stringify(data))
+              break
+            }
             case 'text':
             default: {
               msgs.push(e.attrs.content)
