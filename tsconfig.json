@@ -3,7 +3,8 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "koishi-plugin-*": ["packages/*/src"]
+      "koishi-plugin-*": ["packages/*/src"],
+      "@saarchaffee/msg-handler": ["packages/msg-handler/src"]
     }
   }
 }
