@@ -1,13 +1,18 @@
+import { writeFile } from 'fs/promises'
+import { resolve } from 'path'
+import { inspect } from 'util'
+
 import { Context, Session } from 'koishi'
 import type { } from 'koishi-plugin-adapter-onebot'
 
 export async function handleMsg(ctx: Context, meta: Session): Promise<string> {
-  ctx.logger.debug('content: ' + meta.content)
-  ctx.logger.debug('elements: ' + meta.elements)
-  // await writeFile('meta.json', JSON.stringify(meta))
-
-  ctx.logger.debug('guild id: ' + meta.guildId)
-  ctx.logger.debug('user id: ' + meta.userId)
+  if (process.env.NODE_ENV === 'development') {
+    ctx.logger.info('content: ' + inspect(meta.content, { depth: null, colors: true }))
+    ctx.logger.info('elements: ' + inspect(meta.elements, { depth: null, colors: true }))
+    await writeFile(resolve(__dirname, `../temp/${ctx.name}.json`), JSON.stringify(meta, null, 2))
+    ctx.logger.info('guild id: ' + inspect(meta.guildId, { depth: null, colors: true }))
+    ctx.logger.info('user id: ' + inspect(meta.userId, { depth: null, colors: true }))
+  }
 
   const elements = meta.elements
   const msgs = []
@@ -28,7 +33,6 @@ export async function handleMsg(ctx: Context, meta: Session): Promise<string> {
       }
       case 'json': {
         const data = JSON.parse(e.attrs.data)
-        ctx.logger.debug(JSON.stringify(data))
         msgs.push(JSON.stringify(data))
         break
       }
