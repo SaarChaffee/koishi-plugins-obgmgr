@@ -13,7 +13,7 @@ export const Config: Schema<Config> = Schema.object({
 })
 
 export function apply(ctx: Context, config: Config) {
-  if (config.list.length > 0) {
+  if (config.list.length > 0 && config.list.length > 0) {
     ctx.guild(...config.groups).on('guild-member-request', async (meta) => {
       if (process.env.NODE_ENV === 'development') {
         ctx.logger.info(meta)
