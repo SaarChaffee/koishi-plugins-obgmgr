@@ -1,0 +1,44 @@
+{
+  "name": "koishi-plugin-group-request-limit",
+  "description": "用于 obgmgr 的加群限制",
+  "version": "0.0.1",
+  "main": "lib/index.js",
+  "typings": "lib/index.d.ts",
+  "files": [
+    "lib",
+    "dist"
+  ],
+  "author": {
+    "name": "SaarChaffee",
+    "email": "saarchaffee@qq.com",
+    "url": "https://github.com/SaarChaffee"
+  },
+  "homepage": "https://github.com/SaarChaffee/koishi-plugins-obgmgr",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SaarChaffee/koishi-plugins-obgmgr.git",
+    "directory": "packages/group-request-limit"
+  },
+  "bugs": {
+    "url": "https://github.com/SaarChaffee/koishi-plugins-obgmgr/issues"
+  },
+  "license": "MIT",
+  "keywords": [
+    "chatbot",
+    "koishi",
+    "plugin",
+    "onebot",
+    "qq"
+  ],
+  "koishi": {
+    "description": {
+      "zh": "用于 obgmgr 的加群限制"
+    },
+    "locales": [
+      "zh"
+    ]
+  },
+  "peerDependencies": {
+    "koishi": "^4.17.2"
+  }
+}
