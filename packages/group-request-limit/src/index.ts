@@ -16,6 +16,8 @@ interface Blacklist {
   time: Date
 }
 
+export const inject = ['database']
+
 export async function apply(ctx: Context, config: Config) {
   ctx.model.extend(
     'blacklist',
@@ -31,28 +33,26 @@ export async function apply(ctx: Context, config: Config) {
     },
   )
 
-  ctx.inject(['datebase'], async (ctx) => {
-    if (config.list.length > 0) {
-      while (config.list.length > 0) {
-        const banned = config.list.pop()
-        const res = await ctx.model.get('blacklist', { banned })
-        if (res.length > 0) {
-          continue
-        }
-        const _res = await ctx.model.create(
-          'blacklist',
-          {
-            banned,
-            operator: ctx.bots.filter(bot => bot.platform === 'onebot').map(bot => bot.selfId)[0],
-            group: config.groups[0],
-            kick: false,
-          },
-        )
-        ctx.logger.info(`已自动添加「${_res.banned}」到数据库黑名单。`)
+  if (config.list.length > 0) {
+    while (config.list.length > 0) {
+      const banned = config.list.pop()
+      const res = await ctx.model.get('blacklist', { banned })
+      if (res.length > 0) {
+        continue
       }
-      ctx.scope.update(config, false)
+      const _res = await ctx.model.create(
+        'blacklist',
+        {
+          banned,
+          operator: ctx.bots.filter(bot => bot.platform === 'onebot').map(bot => bot.selfId)[0],
+          group: config.groups[0],
+          kick: false,
+        },
+      )
+      ctx.logger.info(`已自动添加「${_res.banned}」到数据库黑名单。`)
     }
-  })
+    ctx.scope.update(config, false)
+  }
 
   ctx.command('ban <banned:text>')
     .option('kick', '-k')
