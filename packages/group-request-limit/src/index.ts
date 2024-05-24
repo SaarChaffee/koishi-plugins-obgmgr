@@ -19,6 +19,9 @@ interface Blacklist {
 export const inject = ['database']
 
 export async function apply(ctx: Context, config: Config) {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  ctx.i18n.define('zh', require('./locales/zh-CN'))
+
   ctx.model.extend(
     'blacklist',
     {
@@ -93,7 +96,7 @@ export async function apply(ctx: Context, config: Config) {
           msg.push(`已添加「${_res.banned}」到黑名单。`)
         }
       }
-      if (options?.kick) {
+      if (options?.kick || options?.permanent) {
         await kick(session, banned, options?.permanent, msg)
       }
       return msg.join('\n')
