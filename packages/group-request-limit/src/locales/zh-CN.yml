@@ -8,7 +8,7 @@ commands:
       remove: 移除黑名单
 
   kick:
-    description: 踢人\n可以是Q号也可以直接@
+    description: 踢人，可以是Q号也可以直接@
 
     options:
       permanent: 永久踢人
