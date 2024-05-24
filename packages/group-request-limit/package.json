@@ -1,6 +1,6 @@
 {
   "name": "koishi-plugin-group-request-limit",
-  "description": "用于 obgmgr 的加群限制",
+  "description": "用于 onebot 的加群限制",
   "version": "0.0.2",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
@@ -32,11 +32,16 @@
   ],
   "koishi": {
     "description": {
-      "zh": "用于 obgmgr 的加群限制"
+      "zh": "用于 onebot 的加群限制"
     },
     "locales": [
       "zh"
-    ]
+    ],
+    "service": {
+      "required": [
+        "database"
+      ]
+    }
   },
   "peerDependencies": {
     "koishi": "^4.17.2"
