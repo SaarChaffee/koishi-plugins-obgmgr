@@ -1,6 +1,6 @@
 commands:
   ban:
-    description: 添加黑名单\n可以是Q号也可以直接@
+    description: 添加黑名单，可以是Q号也可以直接@
 
     options:
       kick: 踢人
