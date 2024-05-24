@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-group-request-limit",
   "description": "用于 onebot 的加群限制",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
