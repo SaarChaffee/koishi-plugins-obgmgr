@@ -67,10 +67,6 @@ export async function apply(ctx: Context, config: Config) {
         return
       }
       const { session, options, banned } = handled
-      if (banned.trim().length === 0) {
-        return
-      }
-
       const operator = session.userId
       const msg = []
       const res = await ctx.model.get('blacklist', { banned })
@@ -147,18 +143,28 @@ async function handle(ctx: Context, config: Config, meta: Argv, banned: string):
     return false
   }
 
-  switch (h.parse(banned)[0].type) {
-    case 'at': {
-      banned = h.parse(banned)[0].attrs.id
-      break
-    }
-    case 'text': {
-      banned = h.parse(banned)[0].attrs.content
-      break
-    }
-    default: {
+  if (session?.quote) {
+    banned = session.quote.user.id
+  } else {
+    if (!banned || banned.trim().length === 0) {
       return false
     }
+    switch (h.parse(banned)[0].type) {
+      case 'at': {
+        banned = h.parse(banned)[0].attrs.id
+        break
+      }
+      case 'text': {
+        banned = h.parse(banned)[0].attrs.content
+        break
+      }
+      default: {
+        return false
+      }
+    }
+  }
+  if (!isNumeric(banned)) {
+    return
   }
   return { session, options, banned }
 }
@@ -171,6 +177,10 @@ async function kick(session: Session, banned: string, permanent: boolean, msg: s
   } catch (error) {
     msg.push(`踢出失败。`)
   }
+}
+
+function isNumeric(str: string): boolean {
+  return !isNaN(parseFloat(str)) && isFinite(str as never)
 }
 
 export interface Config {
