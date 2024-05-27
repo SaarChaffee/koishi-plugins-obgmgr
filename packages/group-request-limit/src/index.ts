@@ -67,6 +67,10 @@ export async function apply(ctx: Context, config: Config) {
         return
       }
       const { session, options, banned } = handled
+      if (banned.trim().length === 0) {
+        return
+      }
+
       const operator = session.userId
       const msg = []
       const res = await ctx.model.get('blacklist', { banned })
