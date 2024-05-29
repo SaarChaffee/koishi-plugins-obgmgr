@@ -1,24 +1,18 @@
 import { Argv, Context, Schema, Session, h } from 'koishi'
 
+import * as Group from './types'
+
 export const name = 'group-request-limit'
 
 declare module 'koishi' {
   interface Tables {
-    blacklist: Blacklist
+    blacklist: Group.Blacklist
   }
-}
-
-interface Blacklist {
-  banned: string
-  operator: string
-  group: string
-  kick: boolean
-  time: Date
 }
 
 export const inject = ['database']
 
-export async function apply(ctx: Context, config: Config) {
+export async function apply(ctx: Context, config: Group.Config) {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   ctx.i18n.define('zh', require('./locales/zh-CN'))
 
@@ -60,6 +54,7 @@ export async function apply(ctx: Context, config: Config) {
   ctx.command('ban <banned:text>')
     .option('kick', '-k')
     .option('permanent', '-p')
+    .option('all', '-a')
     .option('remove', '-r')
     .action(async (meta, ban) => {
       const handled = await handle(ctx, config, meta, ban)
@@ -97,13 +92,14 @@ export async function apply(ctx: Context, config: Config) {
         }
       }
       if (options?.kick || options?.permanent) {
-        await kick(session, banned, options?.permanent, msg)
+        await kick(session, config, banned, options?.permanent, options?.all, msg)
       }
       return msg.join('\n')
     })
 
   ctx.command('kick <ban:text>')
     .option('permanent', '-p')
+    .option('all', '-a')
     .action(async (meta, ban) => {
       const handled = await handle(ctx, config, meta, ban)
       if (!handled) {
@@ -111,7 +107,7 @@ export async function apply(ctx: Context, config: Config) {
       }
       const { session, options, banned } = handled
       const msg = []
-      await kick(session, banned, options?.permanent, msg)
+      await kick(session, config, banned, options?.permanent, options?.all, msg)
       return msg[0]
     })
 
@@ -126,10 +122,7 @@ export async function apply(ctx: Context, config: Config) {
   })
 }
 
-async function handle(ctx: Context, config: Config, meta: Argv, banned: string): Promise<
-  false |
-  { session: Session; options: { kick?: boolean; permanent?: boolean; remove?: boolean }; banned: string }
-> {
+async function handle(ctx: Context, config: Group.Config, meta: Argv, banned: string): Promise<false | Group.Handle> {
   const { session, options } = meta
   if (process.env.NODE_ENV === 'development') {
     ctx.logger.info(JSON.stringify(meta))
@@ -169,13 +162,35 @@ async function handle(ctx: Context, config: Config, meta: Argv, banned: string):
   return { session, options, banned }
 }
 
-async function kick(session: Session, banned: string, permanent: boolean, msg: string[]) {
+async function kick(
+  session: Session,
+  config: Group.Config,
+  banned: string,
+  permanent: boolean,
+  all: boolean,
+  msg: string[],
+) {
   try {
     await session.bot.getGuildMember(session.guildId, banned)
     await session.bot.kickGuildMember(session.guildId, banned, permanent)
-    msg.push(`已将「${banned}」${permanent ? '永久' : ''}踢出群。`)
+    msg.push(`已将「${banned}」${permanent ? '永久' : ''}踢出本群。`)
   } catch (error) {
-    msg.push(`踢出失败。`)
+    // ctx.logger.error(error.code)
+    // ctx.logger.error(error.msg)
+    // msg.push(`踢出失败。`)
+  }
+  if (all) {
+    for (const group of config.groups) {
+      if (group === session.guildId) {
+        continue
+      }
+      try {
+        await session.bot.getGuildMember(group, banned)
+        await session.bot.kickGuildMember(group, banned, permanent)
+        msg.push(`${permanent ? '永久' : ''}踢出群「${group}」成功。`)
+      } catch (error) {
+      }
+    }
   }
 }
 
@@ -183,12 +198,7 @@ function isNumeric(str: string): boolean {
   return !isNaN(parseFloat(str)) && isFinite(str as never)
 }
 
-export interface Config {
-  list: string[]
-  groups: string[]
-}
-
-export const Config: Schema<Config> = Schema.object({
+export const Config: Schema<Group.Config> = Schema.object({
   groups: Schema.array(Schema.string()).description('群组生效白名单'),
   list: Schema.array(Schema.string()).description('黑名单列表'),
 })
