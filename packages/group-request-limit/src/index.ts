@@ -110,7 +110,7 @@ export async function apply(ctx: Context, config: Group.Config) {
           }
         }
       }
-      if ((options?.kick || options?.permanent) && !options?.remove) {
+      if ((options?.kick || options?.permanent || options?.all) && !options?.remove) {
         await kick(session, config, banned, options?.permanent, options?.all, msg)
       }
       return msg.join('\n')
