@@ -101,7 +101,7 @@ export async function apply(ctx: Context, config: Group.Config) {
             const match = res.match(/(?<messageId>.*):(?<bannedId>.*)/)
             if (match.groups.bannedId === ban) {
               try {
-                await meta.session.bot.handleGuildMemberRequest(match.groups.messageId, false, '黑名单自动拒绝。')
+                await session.bot.handleGuildMemberRequest(match.groups.messageId, false, '黑名单自动拒绝。')
               } catch {
               } finally {
                 await ctx.cache.delete('GMR', res)
@@ -130,17 +130,17 @@ export async function apply(ctx: Context, config: Group.Config) {
       return msg[0]
     })
 
-  ctx.guild(...config.groups).on('guild-member-request', async (meta) => {
+  ctx.guild(...config.groups).on('guild-member-request', async (session) => {
     if (process.env.NODE_ENV === 'development') {
-      ctx.logger.info(meta)
+      ctx.logger.info(session)
     }
-    const res = await ctx.model.get('blacklist', { banned: meta.userId })
+    const res = await ctx.model.get('blacklist', { banned: session.userId })
     if (res.length > 0) {
-      await meta.bot.handleGuildMemberRequest(meta.messageId, false, '黑名单自动拒绝。')
+      await session.bot.handleGuildMemberRequest(session.messageId, false, '黑名单自动拒绝。')
     } else {
       await ctx.cache.set(
         'GMR',
-        `${meta.messageId}:${meta.userId}`,
+        `${session.messageId}:${session.userId}`,
         '',
         Time.day * 7,
       )
