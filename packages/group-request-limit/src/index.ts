@@ -1,4 +1,6 @@
-import { Argv, Context, Schema, Session, h } from 'koishi'
+import { Argv, Context, Schema, Session, Time, h } from 'koishi'
+
+import type { } from '@koishijs/cache'
 
 import * as Group from './types'
 
@@ -10,7 +12,13 @@ declare module 'koishi' {
   }
 }
 
-export const inject = ['database']
+declare module '@koishijs/cache' {
+  interface Tables {
+    GMR: string
+  }
+}
+
+export const inject = ['database', 'cache']
 
 export async function apply(ctx: Context, config: Group.Config) {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -51,7 +59,7 @@ export async function apply(ctx: Context, config: Group.Config) {
     ctx.scope.update(config, false)
   }
 
-  ctx.command('ban <banned:text>')
+  ctx.command('ban <banned:string>')
     .option('kick', '-k')
     .option('permanent', '-p')
     .option('all', '-a')
@@ -89,15 +97,26 @@ export async function apply(ctx: Context, config: Group.Config) {
             },
           )
           msg.push(`已添加「${_res.banned}」到黑名单。`)
+          for await (const res of ctx.cache.keys('GMR')) {
+            const match = res.match(/(?<messageId>.*):(?<bannedId>.*)/)
+            if (match.groups.bannedId === ban) {
+              try {
+                await meta.session.bot.handleGuildMemberRequest(match.groups.messageId, false, '黑名单自动拒绝。')
+              } catch {
+              } finally {
+                await ctx.cache.delete('GMR', res)
+              }
+            }
+          }
         }
       }
-      if (options?.kick || options?.permanent) {
+      if ((options?.kick || options?.permanent) && !options?.remove) {
         await kick(session, config, banned, options?.permanent, options?.all, msg)
       }
       return msg.join('\n')
     })
 
-  ctx.command('kick <ban:text>')
+  ctx.command('kick <ban:string>')
     .option('permanent', '-p')
     .option('all', '-a')
     .action(async (meta, ban) => {
@@ -118,6 +137,13 @@ export async function apply(ctx: Context, config: Group.Config) {
     const res = await ctx.model.get('blacklist', { banned: meta.userId })
     if (res.length > 0) {
       await meta.bot.handleGuildMemberRequest(meta.messageId, false, '黑名单自动拒绝。')
+    } else {
+      await ctx.cache.set(
+        'GMR',
+        `${meta.messageId}:${meta.userId}`,
+        '',
+        Time.day * 7,
+      )
     }
   })
 }

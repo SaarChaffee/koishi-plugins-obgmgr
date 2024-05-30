@@ -39,11 +39,15 @@
     ],
     "service": {
       "required": [
-        "database"
+        "database",
+        "cache"
       ]
     }
   },
   "peerDependencies": {
     "koishi": "^4.17.2"
+  },
+  "devDependencies": {
+    "@koishijs/cache": "2.1.0"
   }
 }
