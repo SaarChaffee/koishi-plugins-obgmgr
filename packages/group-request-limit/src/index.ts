@@ -97,14 +97,14 @@ export async function apply(ctx: Context, config: Group.Config) {
             },
           )
           msg.push(`已添加「${_res.banned}」到黑名单。`)
-          for await (const res of ctx.cache.keys('GMR')) {
-            const match = res.match(/(?<messageId>.*):(?<bannedId>.*)/)
-            if (match.groups.bannedId === ban) {
+          for await (const key of ctx.cache.keys('GMR')) {
+            const match = key.match(/(?<messageId>.*):(?<bannedId>.*):(?<guildId>.*)/)
+            if (match && match.groups.bannedId === ban) {
               try {
                 await session.bot.handleGuildMemberRequest(match.groups.messageId, false, '黑名单自动拒绝。')
               } catch {
               } finally {
-                await ctx.cache.delete('GMR', res)
+                await ctx.cache.delete('GMR', key)
               }
             }
           }
@@ -140,10 +140,20 @@ export async function apply(ctx: Context, config: Group.Config) {
     } else {
       await ctx.cache.set(
         'GMR',
-        `${session.messageId}:${session.userId}`,
+        `${session.messageId}:${session.userId}:${session.guildId}`,
         '',
         Time.day * 7,
       )
+    }
+  })
+
+  ctx.guild(...config.groups).on('guild-member-added', async (session) => {
+    for await (const key of ctx.cache.keys('GMR')) {
+      const match = key.match(/(?<messageId>.*):(?<userId>.*):(?<guildId>.*)/)
+      if (match && match.groups.userId === session.userId && match.groups.guildId === session.guildId) {
+        await ctx.cache.delete('GMR', key)
+        break
+      }
     }
   })
 }
