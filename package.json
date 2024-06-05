@@ -17,7 +17,7 @@
   },
   "prettier": "@hamster-bot/prettier-config",
   "devDependencies": {
-    "@hamster-bot/eslint-config": "1.0.6",
+    "@hamster-bot/eslint-config": "1.0.5",
     "@hamster-bot/prettier-config": "^1.0.1",
     "@koishijs/client": "^5.28.1",
     "@koishijs/scripts": "^4.5.2",
