@@ -5,7 +5,7 @@ commands:
     options:
       kick: 踢人
       permanent: 永久踢人
-      all: 尝试在所有群中踢人，需要与踢人一起使用
+      all: 尝试在所有群中踢人
       remove: 移除黑名单
 
   kick:
@@ -13,4 +13,4 @@ commands:
 
     options:
       permanent: 永久踢人
-      all: 尝试在所有群中踢人，需要与踢人一起使用
+      all: 尝试在所有群中踢人
