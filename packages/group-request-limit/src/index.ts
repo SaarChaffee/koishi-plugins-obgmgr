@@ -99,17 +99,6 @@ export async function apply(ctx: Context, config: Group.Config) {
           msg.push(`已添加「${_res.banned}」到黑名单。`)
           for await (const key of ctx.cache.keys('GMR')) {
             const match = key.match(/(?<messageId>.*):(?<bannedId>.*):(?<guildId>.*)/)
-            if (!match) {
-              const match1 = key.match(/(?<messageId>.*):(?<bannedId>.*)/)
-              if (match1 && match1.groups.bannedId === ban) {
-                try {
-                  await session.bot.handleGuildMemberRequest(match1.groups.messageId, false, '黑名单自动拒绝。')
-                } catch {
-                } finally {
-                  await ctx.cache.delete('GMR', key)
-                }
-              }
-            }
             if (match && match.groups.bannedId === ban) {
               try {
                 await session.bot.handleGuildMemberRequest(match.groups.messageId, false, '黑名单自动拒绝。')
