@@ -137,6 +137,7 @@ export async function apply(ctx: Context, config: Group.Config) {
     const res = await ctx.model.get('blacklist', { banned: session.userId })
     if (res.length > 0) {
       await session.bot.handleGuildMemberRequest(session.messageId, false, '黑名单自动拒绝。')
+      ctx.logger.info(`Rejected ${session.userId} access to ${session.guildId}`)
     } else {
       await ctx.cache.set(
         'GMR',
@@ -144,6 +145,7 @@ export async function apply(ctx: Context, config: Group.Config) {
         '',
         Time.day * 7,
       )
+      ctx.logger.info(`Received ${session.userId} access to ${session.guildId}`)
     }
   })
 
