@@ -5,7 +5,8 @@
 |                                                   名称                                                   |                                                                      按本                                                                       |  描述  |
 | :------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------: | :----: |
 | [anti-repeater](https://github.com/SaarChaffee/koishi-plugins-obgmgr/tree/master/packages/anti-repeater) | [![NPM](https://img.shields.io/npm/v/koishi-plugin-anti-repeater?style=flat-square)](https://www.npmjs.com/package/koishi-plugin-anti-repeater) | 反复读 |
-|   [words-banner](https://github.com/SaarChaffee/koishi-plugins-obgmgr/tree/master/packages/words-banner)   |   [![NPM](https://img.shields.io/npm/v/koishi-plugin-words-banner?style=flat-square)](https://www.npmjs.com/package/koishi-plugin-words-banner)   | 违禁词 |
+|  [words-banner](https://github.com/SaarChaffee/koishi-plugins-obgmgr/tree/master/packages/words-banner)  |  [![NPM](https://img.shields.io/npm/v/koishi-plugin-words-banner?style=flat-square)](https://www.npmjs.com/package/koishi-plugin-words-banner)  | 违禁词 |
+|  [group-request-limit](https://github.com/SaarChaffee/koishi-plugins-obgmgr/tree/master/packages/group-request-limit)  |  [![NPM](https://img.shields.io/npm/v/koishi-plugin-group-request-limit?style=flat-square)](https://www.npmjs.com/package/koishi-plugin-group-request-limit)  | 加群限制/黑名单 |
 
 ## 安装方式
 
