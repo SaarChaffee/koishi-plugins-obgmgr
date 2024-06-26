@@ -45,7 +45,7 @@
     }
   },
   "peerDependencies": {
-    "koishi": "^4.17.2"
+    "koishi": "^4.17.9"
   },
   "devDependencies": {
     "@koishijs/cache": "2.1.0"
