@@ -1,7 +1,7 @@
 {
   "name": "@saarchaffee/msg-handler",
   "description": "用于 obgmgr 的消息处理库",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [

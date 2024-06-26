@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-words-banner",
   "description": "用于 onebot 的违禁词插件",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
@@ -48,6 +48,6 @@
     "koishi-plugin-adapter-onebot": "^6.5.0"
   },
   "dependencies": {
-    "@saarchaffee/msg-handler": "^0.0.3"
+    "@saarchaffee/msg-handler": "^0.0.4"
   }
 }
