@@ -9,11 +9,9 @@ import type { OneBot } from 'koishi-plugin-adapter-onebot'
 export async function handleMsg(ctx: Context, meta: Session): Promise<Content> {
   const bot = await meta.onebot.getGroupMemberInfo(meta.guildId, meta.selfId)
   const user = await meta.onebot.getGroupMemberInfo(meta.guildId, meta.userId)
-  const msg = await handleMsg(ctx, meta)
   if (process.env.NODE_ENV === 'development') {
     ctx.logger.debug('bot info: ' + inspect(bot, { depth: null, colors: true }))
     ctx.logger.debug('user info: ' + inspect(user, { depth: null, colors: true }))
-    ctx.logger.info('message: ' + inspect(msg, { depth: null, colors: true }))
     ctx.logger.info('elements: ' + inspect(meta.elements, { depth: null, colors: true }))
     await writeFile(resolve(__dirname, `../temp/${ctx.name}-${meta.selfId}.json`), JSON.stringify(meta, null, 2))
   }
@@ -55,6 +53,9 @@ export async function handleMsg(ctx: Context, meta: Session): Promise<Content> {
     }
   }
 
+  if (process.env.NODE_ENV === 'development') {
+    ctx.logger.info('message: ' + inspect(msgs, { depth: null, colors: true }))
+  }
   return {
     bot,
     user,
