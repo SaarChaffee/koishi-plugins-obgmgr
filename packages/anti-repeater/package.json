@@ -39,14 +39,14 @@
     ]
   },
   "peerDependencies": {
-    "koishi": "^4.17.2"
+    "koishi": "^4.17.9"
   },
   "devDependencies": {
     "koishi-plugin-adapter-onebot": "^6.5.0"
   },
   "dependencies": {
-    "@saarchaffee/msg-handler": "^0.0.1",
-    "@types/diff": "^5.0.9",
+    "@saarchaffee/msg-handler": "^0.0.3",
+    "@types/diff": "^5.2.1",
     "diff": "^5.2.0"
   }
 }

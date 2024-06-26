@@ -3,15 +3,19 @@ import { resolve } from 'path'
 import { inspect } from 'util'
 
 import { Context, Session } from 'koishi'
-import type { } from 'koishi-plugin-adapter-onebot'
 
-export async function handleMsg(ctx: Context, meta: Session): Promise<string> {
+import type { OneBot } from 'koishi-plugin-adapter-onebot'
+
+export async function handleMsg(ctx: Context, meta: Session): Promise<Content> {
+  const bot = await meta.onebot.getGroupMemberInfo(meta.guildId, meta.selfId)
+  const user = await meta.onebot.getGroupMemberInfo(meta.guildId, meta.userId)
+  const msg = await handleMsg(ctx, meta)
   if (process.env.NODE_ENV === 'development') {
-    ctx.logger.info('content: ' + inspect(meta.content, { depth: null, colors: true }))
+    ctx.logger.debug('bot info: ' + inspect(bot, { depth: null, colors: true }))
+    ctx.logger.debug('user info: ' + inspect(user, { depth: null, colors: true }))
+    ctx.logger.info('message: ' + inspect(msg, { depth: null, colors: true }))
     ctx.logger.info('elements: ' + inspect(meta.elements, { depth: null, colors: true }))
-    await writeFile(resolve(__dirname, `../temp/${ctx.name}.json`), JSON.stringify(meta, null, 2))
-    ctx.logger.info('guild id: ' + inspect(meta.guildId, { depth: null, colors: true }))
-    ctx.logger.info('user id: ' + inspect(meta.userId, { depth: null, colors: true }))
+    await writeFile(resolve(__dirname, `../temp/${ctx.name}-${meta.selfId}.json`), JSON.stringify(meta, null, 2))
   }
 
   const elements = meta.elements
@@ -19,8 +23,7 @@ export async function handleMsg(ctx: Context, meta: Session): Promise<string> {
   for (const e of elements) {
     switch (e.type) {
       case 'at': {
-        const target = await meta.onebot.getGroupMemberInfo(meta.guildId, e.attrs.id)
-        msgs.push(`@${target.card.length > 0 ? target.card : target.nickname}`)
+        msgs.push(`@${user.card.length > 0 ? user.card : user.nickname}`)
         break
       }
       case 'img': {
@@ -28,6 +31,14 @@ export async function handleMsg(ctx: Context, meta: Session): Promise<string> {
         break
       }
       case 'face': {
+        msgs.push(e.attrs.id)
+        break
+      }
+      case 'mface': {
+        msgs.push(e.attrs.emojiId)
+        break
+      }
+      case 'forward': {
         msgs.push(e.attrs.id)
         break
       }
@@ -43,5 +54,16 @@ export async function handleMsg(ctx: Context, meta: Session): Promise<string> {
       }
     }
   }
-  return msgs.join('')
+
+  return {
+    bot,
+    user,
+    message: msgs.join(''),
+  }
+}
+
+export interface Content {
+  bot: OneBot.GroupMemberInfo
+  user: OneBot.GroupMemberInfo
+  message: string
 }

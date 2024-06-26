@@ -51,18 +51,14 @@ export function apply(ctx: Context, config: Config) {
         !config.blackListMode && config.groupList.includes(meta.guildId) ||
         config.blackListMode && !config.groupList.includes(meta.guildId)
       )) {
-        const bot = await meta.onebot.getGroupMemberInfo(meta.guildId, meta.selfId)
+        const { bot, user, message } = await handleMsg(ctx, meta)
         if (bot.role !== 'admin' && bot.role !== 'owner') {
           return next()
         }
-        logger.debug('bot info: ' + inspect(bot, { depth: null, colors: true }))
-
-        const user = await meta.onebot.getGroupMemberInfo(meta.guildId, meta.userId)
-        logger.debug('user info: ' + inspect(user, { depth: null, colors: true }))
 
         const msg = {
           msgId: meta.messageId,
-          message: await handleMsg(ctx, meta),
+          message,
           userRole: user.role,
         }
         if (!groups[meta.guildId].msgs.length) {
@@ -114,7 +110,7 @@ export function apply(ctx: Context, config: Config) {
   }
 }
 
-interface Groups {
+export interface Groups {
   [key: string]: Group
 }
 

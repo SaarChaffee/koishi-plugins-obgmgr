@@ -1,5 +1,3 @@
-import { inspect } from 'util'
-
 import { handleMsg } from '@saarchaffee/msg-handler'
 import { Context, Dict, Schema, Time } from 'koishi'
 import type { } from 'koishi-plugin-adapter-onebot'
@@ -25,21 +23,16 @@ export function apply(ctx: Context) {
         ctx.config.blockingRules[meta.guildId] &&
         ctx.config.blockingRules[meta.guildId].enable
       ) {
-        const bot = await meta.onebot.getGroupMemberInfo(meta.guildId, meta.selfId)
+        const { bot, user, message } = await handleMsg(ctx, meta)
         if (bot.role !== 'admin' && bot.role !== 'owner') {
           return next()
         }
-        ctx.logger.debug('bot info: ' + inspect(bot, { depth: null, colors: true }))
 
-        const user = await meta.onebot.getGroupMemberInfo(meta.guildId, meta.userId)
-        ctx.logger.debug('user info: ' + inspect(user, { depth: null, colors: true }))
-
-        const msg = await handleMsg(ctx, meta)
         const words = ctx.config.blockingRules[meta.guildId].blockingWords
         Object.keys(words).forEach(async (word) => {
           if (words[word].enable) {
             const re = new RegExp(word, 'is')
-            if (re.test(msg) &&
+            if (re.test(message) &&
               !(bot.role === 'admin' && (
                 user.role === 'admin' ||
                 user.role === 'owner'
