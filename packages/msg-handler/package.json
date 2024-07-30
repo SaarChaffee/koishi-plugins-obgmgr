@@ -1,7 +1,7 @@
 {
   "name": "@saarchaffee/msg-handler",
   "description": "用于 obgmgr 的消息处理库",
-  "version": "0.0.4",
+  "version": "1.0.0",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
@@ -31,7 +31,7 @@
     "qq"
   ],
   "peerDependencies": {
-    "koishi": "^4.17.9"
+    "koishi": "^4.17.10"
   },
   "devDependencies": {
     "koishi-plugin-adapter-onebot": "^6.5.0"

@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-anti-repeater",
   "description": "用于 onebot 的反复读机插件",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
@@ -45,7 +45,7 @@
     "koishi-plugin-adapter-onebot": "^6.5.0"
   },
   "dependencies": {
-    "@saarchaffee/msg-handler": "^0.0.4",
+    "@saarchaffee/msg-handler": "^1.0.0",
     "@types/diff": "^5.2.1",
     "diff": "^5.2.0"
   }
