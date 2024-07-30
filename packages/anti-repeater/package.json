@@ -39,10 +39,10 @@
     ]
   },
   "peerDependencies": {
-    "koishi": "^4.17.9"
+    "koishi": "^4.17.10"
   },
   "devDependencies": {
-    "koishi-plugin-adapter-onebot": "^6.5.0"
+    "koishi-plugin-adapter-onebot": "^6.5.9"
   },
   "dependencies": {
     "@saarchaffee/msg-handler": "^1.0.0",
