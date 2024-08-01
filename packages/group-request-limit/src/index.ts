@@ -1,6 +1,6 @@
 import { Argv, Context, Schema, Session, Time, h } from 'koishi'
 
-import type { } from '@koishijs/cache'
+import type {} from '@koishijs/cache'
 
 import * as Group from './types'
 
@@ -30,6 +30,7 @@ export async function apply(ctx: Context, config: Group.Config) {
       banned: { type: 'string', length: 25, nullable: false },
       operator: { type: 'string', length: 25, nullable: false },
       group: { type: 'string', length: 25, nullable: false },
+      reason: { type: 'string', length: 25 },
       kick: 'boolean',
       time: 'timestamp',
     },
@@ -59,12 +60,12 @@ export async function apply(ctx: Context, config: Group.Config) {
     ctx.scope.update(config, false)
   }
 
-  ctx.command('ban <banned:string>')
+  ctx.command('ban <banned:string> [reason:string]')
     .option('kick', '-k')
     .option('permanent', '-p')
     .option('all', '-a')
     .option('remove', '-r')
-    .action(async (meta, ban) => {
+    .action(async (meta, ban, reason) => {
       const handled = await handle(ctx, config, meta, ban)
       if (!handled) {
         return
@@ -81,6 +82,9 @@ export async function apply(ctx: Context, config: Group.Config) {
           const _res = res[0]
           msg.push(`黑名单中「${_res.banned}」已存在。`)
           msg.push(`由「${_res.operator}」在群「${_res.group}」添加。`)
+          if (_res.reason) {
+            msg.push(`原因：${_res.reason}`)
+          }
         }
       } else {
         if (options?.remove) {
@@ -92,6 +96,7 @@ export async function apply(ctx: Context, config: Group.Config) {
               banned,
               operator,
               group: session.guildId,
+              reason: reason || '',
               kick: options?.kick,
               time: new Date(),
             },
@@ -101,17 +106,17 @@ export async function apply(ctx: Context, config: Group.Config) {
             const match = key.match(/(?<messageId>.*):(?<bannedId>.*):(?<guildId>.*)/)
             if (match && match.groups.bannedId === ban) {
               try {
-                await session.bot.handleGuildMemberRequest(match.groups.messageId, false, '黑名单自动拒绝。')
-              } catch {
-              } finally {
+                await session.bot.handleGuildMemberRequest(match.groups.messageId, false, reason || '黑名单自动拒绝。')
                 await ctx.cache.delete('GMR', key)
+              } catch {
+                ctx.logger.warn(`Failed to reject ${match.groups.bannedId} access to ${match.groups.guildId}`)
               }
             }
           }
         }
       }
       if ((options?.kick || options?.permanent || options?.all) && !options?.remove) {
-        await kick(session, config, banned, options?.permanent, options?.all, msg)
+        await kick(ctx, session, config, banned, options?.permanent, options?.all, msg)
       }
       return msg.join('\n')
     })
@@ -126,7 +131,7 @@ export async function apply(ctx: Context, config: Group.Config) {
       }
       const { session, options, banned } = handled
       const msg = []
-      await kick(session, config, banned, options?.permanent, options?.all, msg)
+      await kick(ctx, session, config, banned, options?.permanent, options?.all, msg)
       return msg[0]
     })
 
@@ -136,7 +141,7 @@ export async function apply(ctx: Context, config: Group.Config) {
     }
     const res = await ctx.model.get('blacklist', { banned: session.userId })
     if (res.length > 0) {
-      await session.bot.handleGuildMemberRequest(session.messageId, false, '黑名单自动拒绝。')
+      await session.bot.handleGuildMemberRequest(session.messageId, false, res[0].reason || '黑名单自动拒绝。')
       ctx.logger.info(`Rejected ${session.userId} access to ${session.guildId}`)
     } else {
       await ctx.cache.set(
@@ -195,12 +200,13 @@ async function handle(ctx: Context, config: Group.Config, meta: Argv, banned: st
     }
   }
   if (!isNumeric(banned)) {
-    return
+    return false
   }
   return { session, options, banned }
 }
 
 async function kick(
+  context: Context,
   session: Session,
   config: Group.Config,
   banned: string,
@@ -213,9 +219,7 @@ async function kick(
     await session.bot.kickGuildMember(session.guildId, banned, permanent)
     msg.push(`已将「${banned}」${permanent ? '永久' : ''}踢出本群。`)
   } catch (error) {
-    // ctx.logger.error(error.code)
-    // ctx.logger.error(error.msg)
-    // msg.push(`踢出失败。`)
+    context.logger.warn(`Failed to kick ${banned} from ${session.guildId}`)
   }
   if (all) {
     for (const group of config.groups) {
@@ -227,6 +231,7 @@ async function kick(
         await session.bot.kickGuildMember(group, banned, permanent)
         msg.push(`${permanent ? '永久' : ''}踢出群「${group}」成功。`)
       } catch (error) {
+        context.logger.warn(`Failed to kick ${banned} from ${group}`)
       }
     }
   }

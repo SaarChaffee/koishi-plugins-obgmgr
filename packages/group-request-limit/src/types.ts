@@ -4,6 +4,7 @@ export interface Blacklist {
   banned: string
   operator: string
   group: string
+  reason: string
   kick: boolean
   time: Date
 }
