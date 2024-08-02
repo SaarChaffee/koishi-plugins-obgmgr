@@ -1,7 +1,7 @@
 import { Argv, Context, Schema, Session, Time, h } from 'koishi'
 
 import type {} from '@koishijs/cache'
-
+import type {} from 'koishi-plugin-cron'
 import * as Group from './types'
 
 export const name = 'group-request-limit'
@@ -18,7 +18,10 @@ declare module '@koishijs/cache' {
   }
 }
 
-export const inject = ['database', 'cache']
+export const inject = {
+  required: ['database', 'cache'],
+  optional: ['cron'],
+}
 
 export async function apply(ctx: Context, config: Group.Config) {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -30,8 +33,8 @@ export async function apply(ctx: Context, config: Group.Config) {
       banned: { type: 'string', length: 25, nullable: false },
       operator: { type: 'string', length: 25, nullable: false },
       group: { type: 'string', length: 25, nullable: false },
+      kick: { type: 'integer', length: 1, nullable: false },
       reason: { type: 'string', length: 25 },
-      kick: 'boolean',
       time: 'timestamp',
     },
     {
@@ -52,7 +55,7 @@ export async function apply(ctx: Context, config: Group.Config) {
           banned,
           operator: ctx.bots.filter(bot => bot.platform === 'onebot').map(bot => bot.selfId)[0],
           group: config.groups[0],
-          kick: false,
+          kick: 0,
         },
       )
       ctx.logger.info(`已自动添加「${_res.banned}」到数据库黑名单。`)
@@ -96,8 +99,8 @@ export async function apply(ctx: Context, config: Group.Config) {
               banned,
               operator,
               group: session.guildId,
+              kick: options?.permanent ? 2 : options?.kick ? 1 : 0,
               reason: reason || '',
-              kick: options?.kick,
               time: new Date(),
             },
           )
@@ -163,6 +166,42 @@ export async function apply(ctx: Context, config: Group.Config) {
       }
     }
   })
+
+  if (config.useCron && !!config.cron && ctx.cron) {
+    ctx.cron(config.cron, async () => {
+      const banneds = await ctx.model.get('blacklist', {})
+      const bots = ctx.bots.filter(bot => bot.platform === 'onebot' && !!bot.user.name)
+      const groups = []
+      if (bots.length === 1) {
+        config.groups.forEach(group => groups.push({ [group]: bots[0] }))
+      } else {
+        for (const group of config.groups) {
+          for (const bot of bots) {
+            try {
+              const _bot = await (bot as Group.Bot).internal.getGroupMemberInfo(group, bot.selfId)
+              if (_bot.role === 'admin' || _bot.role === 'owner') {
+                groups.push({ [group]: bot })
+                break
+              }
+            } catch (err) {
+            }
+          }
+        }
+      }
+      for (const banned of banneds) {
+        for (const group of config.groups) {
+          try {
+            await (groups[group] as Group.Bot).getGuildMember(group, banned.banned)
+            await (groups[group] as Group.Bot).kickGuildMember(group, banned.banned, banned.kick === 2)
+            await (groups[group] as Group.Bot)
+              .sendMessage(group, `自动将「${banned.banned}」${banned.kick === 2 ? '永久' : ''}踢出本群。`)
+            ctx.logger.info(`Auto kicked ${banned.banned} from ${group}`)
+          } catch (error) {
+          }
+        }
+      }
+    })
+  }
 }
 
 async function handle(ctx: Context, config: Group.Config, meta: Argv, banned: string): Promise<false | Group.Handle> {
@@ -241,7 +280,20 @@ function isNumeric(str: string): boolean {
   return !isNaN(parseFloat(str)) && isFinite(str as never)
 }
 
-export const Config: Schema<Group.Config> = Schema.object({
-  groups: Schema.array(Schema.string()).description('群组生效白名单'),
-  list: Schema.array(Schema.string()).description('黑名单列表'),
-})
+export const Config: Schema<Group.Config> = Schema.intersect([
+  Schema.object({
+    groups: Schema.array(Schema.string()).description('群组生效白名单'),
+    list: Schema.array(Schema.string()).description('黑名单列表'),
+    useCron: Schema.boolean().default(false)
+      .description('是否启用定时扫描黑名单列表清楚漏网之鱼<br/>需要 cron 服务'),
+  }),
+  Schema.union([
+    Schema.object({
+      useCron: Schema.const(true).required(),
+      cron: Schema.string().default('0 1 * * *')
+        .description(`定时任务表达式<br/>
+          具体语法可以参考 [GNU Crontab](https://www.gnu.org/software/mcron/manual/html_node/Crontab-file.html)`),
+    }),
+    Schema.object({}),
+  ]),
+]) as Schema<Group.Config>

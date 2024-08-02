@@ -1,17 +1,20 @@
-import type { Session } from 'koishi'
+import type { Context, Session } from 'koishi'
+import type { OneBotBot } from 'koishi-plugin-adapter-onebot'
 
 export interface Blacklist {
   banned: string
   operator: string
   group: string
+  kick: 0 | 1 | 2
   reason: string
-  kick: boolean
   time: Date
 }
 
 export interface Config {
   list: string[]
   groups: string[]
+  useCron: boolean
+  cron?: string
 }
 
 export interface Handle {
@@ -26,3 +29,5 @@ export interface Options {
   all?: boolean
   remove?: boolean
 }
+
+export type Bot = OneBotBot<Context, OneBotBot.Config>
