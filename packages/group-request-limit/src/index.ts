@@ -293,7 +293,7 @@ export const Config: Schema<Group.Config> = Schema.intersect([
     groups: Schema.array(Schema.string()).description('群组生效白名单'),
     list: Schema.array(Schema.string()).description('黑名单列表'),
     useCron: Schema.boolean().default(false)
-      .description('是否启用定时扫描黑名单列表清楚漏网之鱼<br/>需要 cron 服务'),
+      .description('是否启用定时扫描黑名单列表清除漏网之鱼<br/>需要 cron 服务'),
   }),
   Schema.union([
     Schema.object({
