@@ -8,9 +8,46 @@ commands:
       all: 尝试在所有群中踢人
       remove: 移除黑名单
 
+    messages:
+      add: 已添加「{banned}」到黑名单。
+      remove: |
+        {#if removed > 0}
+        已将「{banned}」移出黑名单。
+        {:else}
+        移出失败。
+        {/if}
+      exist: |
+        黑名单中「{banned}」已存在。
+        由「{operator}」在群「{group}」添加。{#if reason}
+        原因：{reason}
+        {/if}
+      not-exist:
+        黑名单中「{banned}」不存在。
+
   kick:
     description: 踢人，可以是Q号也可以直接@
 
     options:
       permanent: 永久踢人
       all: 尝试在所有群中踢人
+
+    messages:
+      auto: |
+        {#if kick === 2}
+        自动将「{banned}」永久踢出本群。
+        {:else}
+        自动将「{banned}」踢出本群。
+        {/if}
+      kick:
+        self: |
+          {#if permanent}
+          已将「{banned}」永久踢出本群。
+          {:else}
+          已将「{banned}」踢出本群。
+          {/if}
+        other: |
+          {#if permanent}
+          永久踢出群「{group}」成功。
+          {:else}
+          踢出群「{group}」成功。
+          {/if}
