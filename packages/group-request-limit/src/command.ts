@@ -113,8 +113,9 @@ export async function apply(ctx: Context, config: Group.Config) {
 
   if (config.useCron && !!config.cron && ctx.cron) {
     ctx.cron(config.cron, async () => {
+      ctx.logger.info('Auto kick start')
       const banneds = await ctx.model.get('blacklist', {})
-      const bots = ctx.bots.filter(bot => bot.platform === 'onebot' && !!bot.user.name)
+      const bots = ctx.bots.filter(bot => bot.platform === 'onebot' && bot.status === 1)
       const groups = []
       for (const group of config.groups) {
         if (bots.length === 1) {
