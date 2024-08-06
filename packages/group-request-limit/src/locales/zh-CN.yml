@@ -34,10 +34,8 @@ commands:
     messages:
       auto: |
         {#if kick === 2}
-        自动将「{banned}」永久踢出本群。
-        {:else}
-        自动将「{banned}」踢出本群。
-        {/if}
+        自动将「{banned}」永久踢出本群。{:else}
+        自动将「{banned}」踢出本群。{/if}
       self: |
         {#if permanent}
         已将「{banned}」永久踢出本群。

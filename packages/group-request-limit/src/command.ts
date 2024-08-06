@@ -116,7 +116,7 @@ export async function apply(ctx: Context, config: Group.Config) {
       ctx.logger.info('Auto kick start')
       const banneds = await ctx.model.get('blacklist', {})
       const bots = ctx.bots.filter(bot => bot.platform === 'onebot' && bot.status === 1)
-      const groups = Object.fromEntries(config.groups.map(group => [group, { locales: [], bot: null }]))
+      const groups = Object.fromEntries(config.groups.map(group => [group, { locales: [], bot: null, output: [] }]))
       for (const group of config.groups) {
         if (bots.length === 1) {
           groups[group].bot = bots[0]
@@ -139,15 +139,23 @@ export async function apply(ctx: Context, config: Group.Config) {
           try {
             await (groups[group].bot as Group.Bot).getGuildMember(group, banned.banned)
             await (groups[group].bot as Group.Bot).kickGuildMember(group, banned.banned, banned.kick === 2)
-            await (groups[group].bot as Group.Bot)
-              .sendMessage(group, ctx.i18n.render(
-                groups[group].locales,
-                ['commands.kick.messages.auto'],
-                { kick: banned.kick, banned: banned.banned },
-              ))
+            groups[group].output.push(ctx.i18n.render(
+              groups[group].locales,
+              ['commands.kick.messages.auto'],
+              { kick: banned.kick, banned: banned.banned },
+            ))
             ctx.logger.info(`Auto kicked ${banned.banned} from ${group}`)
           } catch (error) {
           }
+        }
+      }
+      for (const group of config.groups) {
+        if (groups[group].output.length === 1) {
+          await (groups[group].bot as Group.Bot)
+            .sendMessage(group, `${groups[group].output[0].join('')}`)
+        } else if (groups[group].output.length > 1) {
+          await (groups[group].bot as Group.Bot)
+            .sendMessage(group, `${groups[group].output.map(o => o.join('')).join('')}`)
         }
       }
     })
