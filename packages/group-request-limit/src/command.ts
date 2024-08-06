@@ -116,7 +116,7 @@ export async function apply(ctx: Context, config: Group.Config) {
       ctx.logger.info('Auto kick start')
       const banneds = await ctx.model.get('blacklist', {})
       const bots = ctx.bots.filter(bot => bot.platform === 'onebot' && bot.status === 1)
-      const groups = []
+      const groups = Object.fromEntries(config.groups.map(group => [group, { locales: [], bot: null }]))
       for (const group of config.groups) {
         if (bots.length === 1) {
           groups[group].bot = bots[0]
