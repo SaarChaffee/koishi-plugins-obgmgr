@@ -54,7 +54,7 @@ export async function kick(
   banned: string,
   permanent: boolean,
   all: boolean,
-  msg: (string | Element)[],
+  msg: Group.Msg[],
 ) {
   try {
     await session.bot.getGuildMember(session.guildId, banned)

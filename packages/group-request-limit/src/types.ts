@@ -1,4 +1,4 @@
-import type { Context, Session } from 'koishi'
+import type { Context, Session, Element } from 'koishi'
 import type { OneBotBot } from 'koishi-plugin-adapter-onebot'
 
 export interface Blacklist {
@@ -29,5 +29,13 @@ export interface Options {
   all?: boolean
   remove?: boolean
 }
+
+export interface Group {
+  locales: string[]
+  bot: Bot
+  output: Msg[]
+}
+
+export type Msg = string | Element
 
 export type Bot = OneBotBot<Context, OneBotBot.Config>

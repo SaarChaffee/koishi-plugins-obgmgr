@@ -77,7 +77,7 @@ export async function apply(ctx: Context, config: Group.Config) {
         return
       }
       const { session, options, banned } = handled
-      const msg: (string | Element)[] = []
+      const msg: Group.Msg[] = []
       await kick(ctx, session, config, banned, options?.permanent, options?.all, msg)
       return msg.join('\n')
     })
@@ -115,15 +115,19 @@ export async function apply(ctx: Context, config: Group.Config) {
     ctx.cron(config.cron, async () => {
       ctx.logger.info('Auto kick start')
       const banneds = await ctx.model.get('blacklist', {})
-      const bots = ctx.bots.filter(bot => bot.platform === 'onebot' && bot.status === 1)
-      const groups = Object.fromEntries(config.groups.map(group => [group, { locales: [], bot: null, output: [] }]))
+      const bots = ctx.bots.filter(
+        bot => bot.platform === 'onebot' && bot.status === 1,
+      ) as unknown as Group.Bot[]
+      const groups = Object.fromEntries(
+        config.groups.map(group => [group, { locales: [], bot: null, output: [] }]),
+      ) as unknown as Group.Group[]
       for (const group of config.groups) {
         if (bots.length === 1) {
           groups[group].bot = bots[0]
         } else {
           for (const bot of bots) {
             try {
-              const _bot = await (bot as Group.Bot).internal.getGroupMemberInfo(group, bot.selfId)
+              const _bot = await bot.internal.getGroupMemberInfo(group, bot.selfId)
               if (_bot.role === 'admin' || _bot.role === 'owner') {
                 groups[group].bot = bot
                 break
@@ -137,8 +141,8 @@ export async function apply(ctx: Context, config: Group.Config) {
       for (const banned of banneds) {
         for (const group of config.groups) {
           try {
-            await (groups[group].bot as Group.Bot).getGuildMember(group, banned.banned)
-            await (groups[group].bot as Group.Bot).kickGuildMember(group, banned.banned, banned.kick === 2)
+            await groups[group].bot.getGuildMember(group, banned.banned)
+            await groups[group].bot.kickGuildMember(group, banned.banned, banned.kick === 2)
             groups[group].output.push(ctx.i18n.render(
               groups[group].locales,
               ['commands.kick.messages.auto'],
@@ -151,10 +155,10 @@ export async function apply(ctx: Context, config: Group.Config) {
       }
       for (const group of config.groups) {
         if (groups[group].output.length === 1) {
-          await (groups[group].bot as Group.Bot)
+          await groups[group].bot
             .sendMessage(group, `${groups[group].output[0].join('')}`)
         } else if (groups[group].output.length > 1) {
-          await (groups[group].bot as Group.Bot)
+          await groups[group].bot
             .sendMessage(group, `${groups[group].output.map(o => o.join('')).join('')}`)
         }
       }
