@@ -38,13 +38,9 @@ commands:
         自动将「{banned}」踢出本群。{/if}
       self: |
         {#if permanent}
-        已将「{banned}」永久踢出本群。
-        {:else}
-        已将「{banned}」踢出本群。
-        {/if}
+        已将「{banned}」永久踢出本群。{:else}
+        已将「{banned}」踢出本群。{/if}
       other: |
         {#if permanent}
-        永久踢出群「{group}」成功。
-        {:else}
-        踢出群「{group}」成功。
-        {/if}
+        永久踢出群「{group}」成功。{:else}
+        踢出群「{group}」成功。{/if}
