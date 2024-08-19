@@ -33,7 +33,7 @@ export async function apply(ctx: Context, config: Group.Config) {
       operator: { type: 'string', length: 25, nullable: false },
       group: { type: 'string', length: 25, nullable: false },
       kick: { type: 'integer', length: 1, nullable: false },
-      reason: { type: 'string', length: 25 },
+      reason: { type: 'text' },
       time: 'timestamp',
     },
     {
