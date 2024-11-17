@@ -72,14 +72,13 @@ export function apply(ctx: Context, config: Config) {
               groups[meta.guildId].repeat = true
               const deletePromises = []
               while (groups[meta.guildId].msgs.length > 1) {
-                const lastMsg = groups[meta.guildId].msgs[groups[meta.guildId].msgs.length - 1]
-                if (bot.role === 'admin' && (
-                  lastMsg?.userRole === 'admin' ||
-                  lastMsg?.userRole === 'owner'
-                )) {
-                  break
-                }
                 const msg = groups[meta.guildId].msgs.pop()
+                if (bot.role === 'admin' && (
+                  msg?.userRole === 'admin' ||
+                  msg?.userRole === 'owner'
+                )) {
+                  continue
+                }
                 deletePromises.push(meta.bot.deleteMessage(meta.guildId, msg.msgId))
               }
               await Promise.all(deletePromises)
