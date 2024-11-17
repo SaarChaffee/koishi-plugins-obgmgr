@@ -70,18 +70,29 @@ export function apply(ctx: Context, config: Config) {
             groups[meta.guildId].msgs.push(msg)
             if (groups[meta.guildId].msgs.length >= config.count || groups[meta.guildId].repeat) {
               groups[meta.guildId].repeat = true
-              const deletePromises = []
-              while (groups[meta.guildId].msgs.length > 1) {
-                const msg = groups[meta.guildId].msgs.pop()
+
+              for (let i = groups[meta.guildId].msgs.length - 1; i > 0; i--) {
                 if (bot.role === 'admin' && (
-                  msg?.userRole === 'admin' ||
-                  msg?.userRole === 'owner'
+                  groups[meta.guildId].msgs[i]?.userRole === 'admin' ||
+                  groups[meta.guildId].msgs[i]?.userRole === 'owner'
                 )) {
                   continue
                 }
-                deletePromises.push(meta.bot.deleteMessage(meta.guildId, msg.msgId))
+                await meta.bot.deleteMessage(meta.guildId, groups[meta.guildId].msgs[i].msgId)
               }
-              await Promise.all(deletePromises)
+
+              // const deletePromises = []
+              // while (groups[meta.guildId].msgs.length > 1) {
+              //   const msg = groups[meta.guildId].msgs.pop()
+              //   if (bot.role === 'admin' && (
+              //     msg?.userRole === 'admin' ||
+              //     msg?.userRole === 'owner'
+              //   )) {
+              //     continue
+              //   }
+              //   deletePromises.push(meta.bot.deleteMessage(meta.guildId, msg.msgId))
+              // }
+              // await Promise.all(deletePromises)
             } else {
               if (groups[meta.guildId].msgs.length > 1 || groups[meta.guildId].repeat) {
                 if (!groups[meta.guildId].temp) {
