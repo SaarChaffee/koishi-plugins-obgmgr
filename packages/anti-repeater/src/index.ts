@@ -70,51 +70,49 @@ export function apply(ctx: Context, config: Config) {
             groups[meta.guildId].msgs.push(msg)
             if (groups[meta.guildId].msgs.length >= config.count || groups[meta.guildId].repeat) {
               groups[meta.guildId].repeat = true
-              ctx.logger.info(`msg length: ${groups[meta.guildId].msgs.length}`)
-              for (let i = groups[meta.guildId].msgs.length - 1; i > 0; i--) {
-                if (bot.role === 'admin' && (
-                  groups[meta.guildId].msgs[i]?.userRole === 'admin' ||
-                  groups[meta.guildId].msgs[i]?.userRole === 'owner'
-                )) {
-                  continue
-                }
-                await meta.onebot.deleteMsg(groups[meta.guildId].msgs[i].msgId)
-              }
-
-              // const deletePromises = []
-              // while (groups[meta.guildId].msgs.length > 1) {
-              //   const msg = groups[meta.guildId].msgs.pop()
+              // for (let i = groups[meta.guildId].msgs.length - 1; i > 0; i--) {
               //   if (bot.role === 'admin' && (
-              //     msg?.userRole === 'admin' ||
-              //     msg?.userRole === 'owner'
+              //     groups[meta.guildId].msgs[i]?.userRole === 'admin' ||
+              //     groups[meta.guildId].msgs[i]?.userRole === 'owner'
               //   )) {
               //     continue
               //   }
-              //   deletePromises.push(meta.onebot.deleteMsg(msg.msgId))
+              //   await meta.onebot.deleteMsg(groups[meta.guildId].msgs[i].msgId)
               // }
-              // await Promise.all(deletePromises)
-            } else {
-              if (groups[meta.guildId].msgs.length > 1 || groups[meta.guildId].repeat) {
-                if (!groups[meta.guildId].temp) {
-                  groups[meta.guildId].temp = msg
-                } else {
-                  const ratio = getRatio(msg.message, groups[meta.guildId].temp.message)
-                  if (ratio !== 0 && ratio >= config.similarity) {
-                    if (config.count === 2) {
-                      await meta.onebot.deleteMsg(groups[meta.guildId].temp.msgId)
-                      await meta.onebot.deleteMsg(msg.msgId)
-                    } else {
-                      groups[meta.guildId].msgs = [groups[meta.guildId].temp, msg]
-                    }
-                  } else {
-                    groups[meta.guildId].msgs = [msg]
-                  }
-                  groups[meta.guildId].repeat = false
-                  groups[meta.guildId].temp = null
+              const deletePromises = []
+              while (groups[meta.guildId].msgs.length > 1) {
+                const msg = groups[meta.guildId].msgs.pop()
+                if (bot.role === 'admin' && (
+                  msg?.userRole === 'admin' ||
+                  msg?.userRole === 'owner'
+                )) {
+                  continue
                 }
-              } else {
-                groups[meta.guildId].msgs = [msg]
+                deletePromises.push(meta.onebot.deleteMsg(msg.msgId))
               }
+              await Promise.all(deletePromises)
+            }
+          } else {
+            if (groups[meta.guildId].msgs.length > 1 || groups[meta.guildId].repeat) {
+              if (!groups[meta.guildId].temp) {
+                groups[meta.guildId].temp = msg
+              } else {
+                const ratio = getRatio(msg.message, groups[meta.guildId].temp.message)
+                if (ratio !== 0 && ratio >= config.similarity) {
+                  if (config.count === 2) {
+                    await meta.onebot.deleteMsg(groups[meta.guildId].temp.msgId)
+                    await meta.onebot.deleteMsg(msg.msgId)
+                  } else {
+                    groups[meta.guildId].msgs = [groups[meta.guildId].temp, msg]
+                  }
+                } else {
+                  groups[meta.guildId].msgs = [msg]
+                }
+                groups[meta.guildId].repeat = false
+                groups[meta.guildId].temp = null
+              }
+            } else {
+              groups[meta.guildId].msgs = [msg]
             }
           }
         }
