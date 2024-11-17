@@ -70,15 +70,6 @@ export function apply(ctx: Context, config: Config) {
             groups[meta.guildId].msgs.push(msg)
             if (groups[meta.guildId].msgs.length >= config.count || groups[meta.guildId].repeat) {
               groups[meta.guildId].repeat = true
-              // for (let i = groups[meta.guildId].msgs.length - 1; i > 0; i--) {
-              //   if (bot.role === 'admin' && (
-              //     groups[meta.guildId].msgs[i]?.userRole === 'admin' ||
-              //     groups[meta.guildId].msgs[i]?.userRole === 'owner'
-              //   )) {
-              //     continue
-              //   }
-              //   await meta.onebot.deleteMsg(groups[meta.guildId].msgs[i].msgId)
-              // }
               const deletePromises = []
               while (groups[meta.guildId].msgs.length > 1) {
                 const msg = groups[meta.guildId].msgs.pop()
