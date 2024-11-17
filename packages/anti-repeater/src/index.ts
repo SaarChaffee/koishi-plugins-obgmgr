@@ -3,7 +3,7 @@ import { inspect } from 'util'
 import { handleMsg } from '@saarchaffee/msg-handler'
 import { diffChars } from 'diff'
 import { Context, Logger, Schema } from 'koishi'
-import type { } from 'koishi-plugin-adapter-onebot'
+import type {} from 'koishi-plugin-adapter-onebot'
 
 export const name = 'anti-repeater'
 const logger = new Logger(name)
@@ -70,37 +70,41 @@ export function apply(ctx: Context, config: Config) {
             groups[meta.guildId].msgs.push(msg)
             if (groups[meta.guildId].msgs.length >= config.count || groups[meta.guildId].repeat) {
               groups[meta.guildId].repeat = true
-              for (let i = groups[meta.guildId].msgs.length - 1; i > 0; i--) {
+              const deletePromises = []
+              while (groups[meta.guildId].msgs.length > 1) {
+                const lastMsg = groups[meta.guildId].msgs[groups[meta.guildId].msgs.length - 1]
                 if (bot.role === 'admin' && (
-                  groups[meta.guildId].msgs[i]?.userRole === 'admin' ||
-                  groups[meta.guildId].msgs[i]?.userRole === 'owner'
+                  lastMsg?.userRole === 'admin' ||
+                  lastMsg?.userRole === 'owner'
                 )) {
-                  continue
+                  break
                 }
-                await meta.bot.deleteMessage(meta.guildId, groups[meta.guildId].msgs[i].msgId)
+                const msg = groups[meta.guildId].msgs.pop()
+                deletePromises.push(meta.bot.deleteMessage(meta.guildId, msg.msgId))
               }
-            }
-          } else {
-            if (groups[meta.guildId].msgs.length > 1 || groups[meta.guildId].repeat) {
-              if (!groups[meta.guildId].temp) {
-                groups[meta.guildId].temp = msg
-              } else {
-                const ratio = getRatio(msg.message, groups[meta.guildId].temp.message)
-                if (ratio !== 0 && ratio >= config.similarity) {
-                  if (config.count === 2) {
-                    await meta.bot.deleteMessage(meta.guildId, groups[meta.guildId].temp.msgId)
-                    await meta.bot.deleteMessage(meta.guildId, msg.msgId)
-                  } else {
-                    groups[meta.guildId].msgs = [groups[meta.guildId].temp, msg]
-                  }
-                } else {
-                  groups[meta.guildId].msgs = [msg]
-                }
-                groups[meta.guildId].repeat = false
-                groups[meta.guildId].temp = null
-              }
+              await Promise.all(deletePromises)
             } else {
-              groups[meta.guildId].msgs = [msg]
+              if (groups[meta.guildId].msgs.length > 1 || groups[meta.guildId].repeat) {
+                if (!groups[meta.guildId].temp) {
+                  groups[meta.guildId].temp = msg
+                } else {
+                  const ratio = getRatio(msg.message, groups[meta.guildId].temp.message)
+                  if (ratio !== 0 && ratio >= config.similarity) {
+                    if (config.count === 2) {
+                      await meta.bot.deleteMessage(meta.guildId, groups[meta.guildId].temp.msgId)
+                      await meta.bot.deleteMessage(meta.guildId, msg.msgId)
+                    } else {
+                      groups[meta.guildId].msgs = [groups[meta.guildId].temp, msg]
+                    }
+                  } else {
+                    groups[meta.guildId].msgs = [msg]
+                  }
+                  groups[meta.guildId].repeat = false
+                  groups[meta.guildId].temp = null
+                }
+              } else {
+                groups[meta.guildId].msgs = [msg]
+              }
             }
           }
         }
