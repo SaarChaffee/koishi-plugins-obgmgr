@@ -70,7 +70,7 @@ export function apply(ctx: Context, config: Config) {
             groups[meta.guildId].msgs.push(msg)
             if (groups[meta.guildId].msgs.length >= config.count || groups[meta.guildId].repeat) {
               groups[meta.guildId].repeat = true
-
+              ctx.logger.info(`msg length: ${groups[meta.guildId].msgs.length}`)
               for (let i = groups[meta.guildId].msgs.length - 1; i > 0; i--) {
                 if (bot.role === 'admin' && (
                   groups[meta.guildId].msgs[i]?.userRole === 'admin' ||
@@ -78,7 +78,7 @@ export function apply(ctx: Context, config: Config) {
                 )) {
                   continue
                 }
-                await meta.bot.deleteMessage(meta.guildId, groups[meta.guildId].msgs[i].msgId)
+                await meta.onebot.deleteMsg(groups[meta.guildId].msgs[i].msgId)
               }
 
               // const deletePromises = []
@@ -90,7 +90,7 @@ export function apply(ctx: Context, config: Config) {
               //   )) {
               //     continue
               //   }
-              //   deletePromises.push(meta.bot.deleteMessage(meta.guildId, msg.msgId))
+              //   deletePromises.push(meta.onebot.deleteMsg(msg.msgId))
               // }
               // await Promise.all(deletePromises)
             } else {
@@ -101,8 +101,8 @@ export function apply(ctx: Context, config: Config) {
                   const ratio = getRatio(msg.message, groups[meta.guildId].temp.message)
                   if (ratio !== 0 && ratio >= config.similarity) {
                     if (config.count === 2) {
-                      await meta.bot.deleteMessage(meta.guildId, groups[meta.guildId].temp.msgId)
-                      await meta.bot.deleteMessage(meta.guildId, msg.msgId)
+                      await meta.onebot.deleteMsg(groups[meta.guildId].temp.msgId)
+                      await meta.onebot.deleteMsg(msg.msgId)
                     } else {
                       groups[meta.guildId].msgs = [groups[meta.guildId].temp, msg]
                     }
