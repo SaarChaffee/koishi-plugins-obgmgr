@@ -18,6 +18,9 @@ export interface Config {
   fuck: boolean
   fuckDuration?: number
   fuckReason?: string
+  levelLimit: boolean
+  level?: number
+  levelReason?: string
 }
 
 export interface Handle {

@@ -13,15 +13,23 @@ export async function apply(ctx: Context, config: Group.Config) {
     if (res.length > 0) {
       await session.bot.handleGuildMemberRequest(session.messageId, false, res[0].reason || '黑名单自动拒绝。')
       ctx.logger.info(`Rejected ${session.userId} access to ${session.guildId}`)
-    } else {
-      await ctx.cache.set(
-        'GMR',
-        `${session.messageId}:${session.userId}:${session.guildId}`,
-        '',
-        Time.day * 7,
-      )
-      ctx.logger.info(`Received ${session.userId} access to ${session.guildId}`)
+      return
     }
+    if (config.levelLimit) {
+      const level = (await session.bot.internal.getStrangerInfo(session.userId, true)).qqLevel
+      if (level < config.level) {
+        await session.bot.handleGuildMemberRequest(session.messageId, false, config.levelReason)
+        ctx.logger.info(`Rejected ${session.userId} access to ${session.guildId}`)
+        return
+      }
+    }
+    await ctx.cache.set(
+      'GMR',
+      `${session.messageId}:${session.userId}:${session.guildId}`,
+      '',
+      Time.day * 7,
+    )
+    ctx.logger.info(`Received ${session.userId} access to ${session.guildId}`)
   })
 
   ctx.guild(...config.groups).on('guild-member-added', async (session) => {

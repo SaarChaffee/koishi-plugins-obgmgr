@@ -1,6 +1,7 @@
 import { Context, Schema } from 'koishi'
 
 import * as Command from './command'
+import * as Event from './event'
 import * as Group from './types'
 
 export const name = 'group-request-limit'
@@ -64,31 +65,53 @@ export async function apply(ctx: Context, config: Group.Config) {
   }
 
   ctx.plugin(Command, config)
+  ctx.plugin(Event, config)
 }
 
 export const Config: Schema<Group.Config> = Schema.intersect([
   Schema.object({
     groups: Schema.array(Schema.string()).description('群组生效白名单'),
     list: Schema.array(Schema.string()).description('黑名单列表'),
-    useCron: Schema.boolean().default(false)
-      .description('是否启用定时扫描黑名单列表清除漏网之鱼<br/>需要 cron 服务'),
-    fuck: Schema.boolean().default(false).description('是否禁止短时间内进群退群'),
   }),
-  Schema.union([
+  Schema.intersect([
     Schema.object({
-      useCron: Schema.const(true).required(),
-      cron: Schema.string().default('0 1 * * *')
-        .description(`定时任务表达式<br/>
+      useCron: Schema.boolean().default(false)
+        .description('是否启用定时扫描黑名单列表清除漏网之鱼<br/>需要 cron 服务'),
+    }),
+    Schema.union([
+      Schema.object({
+        useCron: Schema.const(true).required(),
+        cron: Schema.string().default('0 1 * * *')
+          .description(`定时任务表达式<br/>
           具体语法可以参考 [GNU Crontab](https://www.gnu.org/software/mcron/manual/html_node/Crontab-file.html)`),
-    }),
-    Schema.object({}),
+      }),
+      Schema.object({}),
+    ]),
   ]),
-  Schema.union([
+  Schema.intersect([
     Schema.object({
-      fuck: Schema.const(true).required(),
-      fuckDuration: Schema.natural().role('m').description('时长 (分钟)').default(30),
-      fuckReason: Schema.string().description('原因').default('日群'),
+      fuck: Schema.boolean().default(false).description('是否禁止短时间内进群退群'),
     }),
-    Schema.object({}),
+    Schema.union([
+      Schema.object({
+        fuck: Schema.const(true).required(),
+        fuckDuration: Schema.natural().role('m').description('时长 (分钟)').default(30),
+        fuckReason: Schema.string().description('原因').default('日群'),
+      }),
+      Schema.object({}),
+    ]),
+  ]),
+  Schema.intersect([
+    Schema.object({
+      levelLimit: Schema.boolean().default(false).description('开启进群等级限制'),
+    }),
+    Schema.union([
+      Schema.object({
+        levelLimit: Schema.const(true).required(),
+        level: Schema.number().default(50).description('最低等级'),
+        levelReason: Schema.string().description('原因').default('等级过低'),
+      }),
+      Schema.object({}),
+    ]),
   ]),
 ]) as Schema<Group.Config>
