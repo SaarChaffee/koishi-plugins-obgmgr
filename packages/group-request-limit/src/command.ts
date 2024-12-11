@@ -109,6 +109,38 @@ export async function apply(ctx: Context, config: Group.Config) {
         break
       }
     }
+
+    if (config.fuck) {
+      await ctx.cache.set(
+        'GMRFuck',
+        `${session.userId}:${session.guildId}`,
+        '',
+        config.fuckDuration * 60 * 1000,
+      )
+    }
+  })
+
+  ctx.guild(...config.groups).on('guild-member-removed', async (session) => {
+    if (session.subtype === 'passive' && config.fuck) {
+      for await (const key of ctx.cache.keys('GMRFuck')) {
+        const match = key.match(/(?<userId>.*):(?<guildId>.*)/)
+        if (match && match.groups.userId === session.userId && match.groups.guildId === session.guildId) {
+          await ctx.cache.delete('GMRFuck', key)
+          await ctx.model.create(
+            'blacklist',
+            {
+              banned: session.userId,
+              operator: session.selfId,
+              group: session.guildId,
+              kick: 0,
+              reason: config.fuckReason,
+              time: new Date(),
+            },
+          )
+          break
+        }
+      }
+    }
   })
 
   if (config.useCron && !!config.cron && ctx.cron) {

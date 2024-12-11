@@ -15,6 +15,9 @@ export interface Config {
   groups: string[]
   useCron: boolean
   cron?: string
+  fuck: boolean
+  fuckDuration?: number
+  fuckReason?: string
 }
 
 export interface Handle {

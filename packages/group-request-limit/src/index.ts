@@ -14,6 +14,7 @@ declare module 'koishi' {
 declare module '@koishijs/cache' {
   interface Tables {
     GMR: string
+    GMRFuck: string
   }
 }
 
@@ -71,6 +72,7 @@ export const Config: Schema<Group.Config> = Schema.intersect([
     list: Schema.array(Schema.string()).description('黑名单列表'),
     useCron: Schema.boolean().default(false)
       .description('是否启用定时扫描黑名单列表清除漏网之鱼<br/>需要 cron 服务'),
+    fuck: Schema.boolean().default(false).description('是否禁止短时间内进群退群'),
   }),
   Schema.union([
     Schema.object({
@@ -78,6 +80,14 @@ export const Config: Schema<Group.Config> = Schema.intersect([
       cron: Schema.string().default('0 1 * * *')
         .description(`定时任务表达式<br/>
           具体语法可以参考 [GNU Crontab](https://www.gnu.org/software/mcron/manual/html_node/Crontab-file.html)`),
+    }),
+    Schema.object({}),
+  ]),
+  Schema.union([
+    Schema.object({
+      fuck: Schema.const(true).required(),
+      fuckDuration: Schema.natural().role('m').description('时长 (分钟)').default(30),
+      fuckReason: Schema.string().description('原因').default('日群'),
     }),
     Schema.object({}),
   ]),
