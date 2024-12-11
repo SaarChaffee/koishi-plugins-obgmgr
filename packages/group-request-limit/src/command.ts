@@ -137,18 +137,20 @@ export async function apply(ctx: Context, config: Group.Config) {
           }
         }
         groups[group].locales = (await ctx.database.getChannel('ontbot', group, ['locales']))?.locales
+        groups[group].members = await (groups[group].bot as Group.Bot).internal.getGroupMemberList(group, true)
       }
       for (const banned of banneds) {
         for (const group of config.groups) {
           try {
-            await groups[group].bot.getGuildMember(group, banned.banned)
-            await groups[group].bot.kickGuildMember(group, banned.banned, banned.kick === 2)
-            groups[group].output.push(ctx.i18n.render(
-              groups[group].locales,
-              ['commands.kick.messages.auto'],
-              { kick: banned.kick, banned: banned.banned },
-            ))
-            ctx.logger.info(`Auto kicked ${banned.banned} from ${group}`)
+            if (groups[group].members.some(m => m.user_id + '' === banned.banned)) {
+              await (groups[group].bot as Group.Bot).internal.setGroupKick(group, banned.banned, banned.kick === 2)
+              groups[group].output.push(ctx.i18n.render(
+                groups[group].locales,
+                ['commands.kick.messages.auto'],
+                { kick: banned.kick, banned: banned.banned },
+              ))
+              ctx.logger.info(`Auto kicked ${banned.banned} from ${group}`)
+            }
           } catch (error) {
           }
         }

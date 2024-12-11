@@ -1,5 +1,5 @@
 import type { Context, Session, Element } from 'koishi'
-import type { OneBotBot } from 'koishi-plugin-adapter-onebot'
+import type { OneBot, OneBotBot } from 'koishi-plugin-adapter-onebot'
 
 export interface Blacklist {
   banned: string
@@ -34,6 +34,7 @@ export interface Group {
   locales: string[]
   bot: Bot
   output: Msg[]
+  members: OneBot.GroupMemberInfo[]
 }
 
 export type Msg = string | Element
