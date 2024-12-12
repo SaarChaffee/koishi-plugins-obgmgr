@@ -18,8 +18,13 @@ export async function apply(ctx: Context, config: Group.Config) {
     if (config.levelLimit) {
       const level = (await session.bot.internal.getStrangerInfo(session.userId, true)).qqLevel
       if (level < config.level) {
-        await session.bot.handleGuildMemberRequest(session.messageId, false, config.levelReason)
-        ctx.logger.info(`Rejected ${session.userId} access to ${session.guildId}`)
+        const match = config.levelIgnores.some(ignore => {
+          return (new RegExp(ignore, 'is')).test(session.content)
+        })
+        if (!match) {
+          await session.bot.handleGuildMemberRequest(session.messageId, false, config.levelReason)
+          ctx.logger.info(`Rejected ${session.userId} access to ${session.guildId}`)
+        }
         return
       }
     }

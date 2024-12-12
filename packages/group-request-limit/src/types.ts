@@ -21,6 +21,7 @@ export interface Config {
   levelLimit: boolean
   level?: number
   levelReason?: string
+  levelIgnores?: string[]
 }
 
 export interface Handle {
