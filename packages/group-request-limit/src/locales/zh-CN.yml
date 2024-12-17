@@ -44,3 +44,15 @@ commands:
         {#if permanent}
         永久踢出群「{group}」成功。{:else}
         踢出群「{group}」成功。{/if}
+
+  get:
+    description: 查询黑名单
+
+    messages:
+      exist: |
+        黑名单中「{banned}」已存在。
+        由「{operator}」在群「{group}」添加。{#if reason}
+        原因：{reason}
+        {/if}
+      not-exist:
+        黑名单中「{banned}」不存在。

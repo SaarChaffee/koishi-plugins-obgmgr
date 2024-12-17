@@ -80,4 +80,27 @@ export async function apply(ctx: Context, config: Group.Config) {
       await kick(ctx, session, config, banned, options?.permanent, options?.all, msg)
       return msg.join('\n')
     })
+
+  ctx.command('get <ban:string>')
+    .action(async (meta, ban) => {
+      const handled = await handle(ctx, config, meta, ban)
+      if (!handled) {
+        return
+      }
+      const { session, banned } = handled
+      const msg = []
+      const res = await ctx.model.get('blacklist', { banned })
+      if (!res.length) {
+        msg.push(session.text('.not-exist', { banned }))
+      } else {
+        const _res = res[0]
+        msg.push(session.text('.exist', {
+          operator: _res.operator,
+          group: _res.group,
+          banned: _res.banned,
+          reason: _res.reason,
+        }))
+      }
+      return msg.join('\n')
+    })
 }
