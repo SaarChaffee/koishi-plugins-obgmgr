@@ -57,8 +57,8 @@ export async function kick(
   msg: Group.Msg[],
 ) {
   try {
-    await session.bot.getGuildMember(session.guildId, banned)
-    await session.bot.kickGuildMember(session.guildId, banned, permanent)
+    await session.bot.internal.getGroupMemberInfo(session.guildId, banned, true)
+    await session.bot.internal.setGroupKick(session.guildId, banned, permanent)
     msg.push(session.text('commands.kick.messages.self', { permanent, banned }))
   } catch (error) {
     context.logger.warn(`Failed to kick ${banned} from ${session.guildId}`)
@@ -69,8 +69,8 @@ export async function kick(
         continue
       }
       try {
-        await session.bot.getGuildMember(group, banned)
-        await session.bot.kickGuildMember(group, banned, permanent)
+        await session.bot.internal.getGroupMemberInfo(group, banned, true)
+        await session.bot.internal.setGroupKick(group, banned, permanent)
         msg.push(session.text('commands.kick.messages.other', { permanent, banned, group }))
       } catch (error) {
         context.logger.warn(`Failed to kick ${banned} from ${group}`)
