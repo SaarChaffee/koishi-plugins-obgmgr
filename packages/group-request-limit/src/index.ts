@@ -111,6 +111,7 @@ export const Config: Schema<Group.Config> = Schema.intersect([
         level: Schema.number().default(50).description('最低等级'),
         levelReason: Schema.string().description('原因').default('等级过低'),
         levelIgnores: Schema.array(Schema.string()).default([]).description('忽略掉的情况'),
+        levelHided: Schema.string().description('隐藏等级时的拒绝消息').default('请不要隐藏等级'),
       }),
       Schema.object({}),
     ]),

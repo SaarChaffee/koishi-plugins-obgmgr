@@ -16,14 +16,19 @@ export async function apply(ctx: Context, config: Group.Config) {
       return
     }
     if (config.levelLimit) {
-      const level = (await session.bot.internal.getStrangerInfo(session.userId, true)).qqLevel
-      if (level < config.level) {
+      const qq = await session.bot.internal.getStrangerInfo(session.userId, true)
+      if (qq.qqLevel < config.level) {
         const match = config.levelIgnores.some(ignore => {
           return (new RegExp(ignore, 'is')).test(session.content)
         })
         if (!match) {
-          await session.bot.handleGuildMemberRequest(session.messageId, false, config.levelReason)
-          ctx.logger.info(`Rejected ${session.userId} access to ${session.guildId}`)
+          if (!qq.qqLevel && qq.isHideQQLevel) {
+            await session.bot.handleGuildMemberRequest(session.messageId, false, config.levelHided)
+            ctx.logger.info(`Rejected ${session.userId} access to ${session.guildId}`)
+          } else {
+            await session.bot.handleGuildMemberRequest(session.messageId, false, config.levelReason)
+            ctx.logger.info(`Rejected ${session.userId} access to ${session.guildId}`)
+          }
         }
         return
       }

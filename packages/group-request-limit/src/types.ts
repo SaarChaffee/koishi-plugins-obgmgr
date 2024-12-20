@@ -22,6 +22,7 @@ export interface Config {
   level?: number
   levelReason?: string
   levelIgnores?: string[]
+  levelHided?: string
 }
 
 export interface Handle {
