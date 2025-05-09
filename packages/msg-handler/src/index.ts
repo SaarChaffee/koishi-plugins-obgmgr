@@ -23,7 +23,9 @@ export async function handleMsg(ctx: Context, meta: Session): Promise<Content> {
   for (const e of elements) {
     switch (e.type) {
       case 'at': {
-        msgs.push(`@${user.card.length > 0 ? user.card : user.nickname}`)
+        const target = await meta.onebot.getGroupMemberInfo(meta.guildId, e.attrs.id)
+        ctx.logger.info('target info: ' + inspect(target, { depth: null, colors: true }))
+        msgs.push(`@${target.card.length > 0 ? target.card : target.nickname}`)
         break
       }
       case 'img': {
