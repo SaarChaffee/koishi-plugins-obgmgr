@@ -17,12 +17,15 @@ export async function apply(ctx: Context, config: Group.Config) {
     }
     if (config.levelLimit) {
       const qq = await session.bot.internal.getStrangerInfo(session.userId, true)
-      if (qq.qqLevel < config.level) {
+      if (process.env.NODE_ENV === 'development') {
+        ctx.logger.info(qq)
+      }
+      if (qq?.qqLevel < config.level || qq?.level < config.level) {
         const match = config.levelIgnores.some(ignore => {
           return (new RegExp(ignore, 'is')).test(session.content)
         })
         if (!match) {
-          if (!qq.qqLevel && qq.isHideQQLevel) {
+          if (!qq?.level || !qq?.qqLevel && qq?.isHideQQLevel) {
             await session.bot.handleGuildMemberRequest(session.messageId, false, config.levelHided)
             ctx.logger.info(`Rejected ${session.userId} access to ${session.guildId}`)
           } else {
