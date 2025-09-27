@@ -7,8 +7,8 @@ import { Context, Session } from 'koishi'
 import type { OneBot } from 'koishi-plugin-adapter-onebot'
 
 export async function handleMsg(ctx: Context, meta: Session): Promise<Content> {
-  const bot = await meta.onebot.getGroupMemberInfo(meta.guildId, meta.selfId)
-  const user = await meta.onebot.getGroupMemberInfo(meta.guildId, meta.userId)
+  const bot = await meta.onebot.getGroupMemberInfo(meta.guildId, meta.selfId, true)
+  const user = await meta.onebot.getGroupMemberInfo(meta.guildId, meta.userId, true)
   if (process.env.NODE_ENV === 'development') {
     // ctx.logger.info('bot info: ' + inspect(bot, { depth: null, colors: true }))
     // ctx.logger.info('user info: ' + inspect(user, { depth: null, colors: true }))
@@ -23,9 +23,9 @@ export async function handleMsg(ctx: Context, meta: Session): Promise<Content> {
   for (const e of elements) {
     switch (e.type) {
       case 'at': {
-        const target = await meta.onebot.getGroupMemberInfo(meta.guildId, e.attrs.id)
+        const target = await meta.onebot.getGroupMemberInfo(meta.guildId, e.attrs.id, true)
         // ctx.logger.info('target info: ' + inspect(target, { depth: null, colors: true }))
-        msgs.push(`@${target.card.length > 0 ? target.card : target.nickname}`)
+        msgs.push(`@${target.card?.length > 0 ? target.card : target.nickname}`)
         break
       }
       case 'img': {
